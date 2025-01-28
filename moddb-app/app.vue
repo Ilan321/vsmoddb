@@ -27,9 +27,23 @@ const auth = useAuthStore();
           >Mod troubleshooting</nav-item
         >
       </nav>
-      <div class="content-inner bg-neutral-200">
+      <div class="content-inner bg-neutral-200 px-4 py-2">
         <NuxtPage />
       </div>
+      <footer
+        class="mt-2 py-1 px-2 flex flex-row text-sm text-neutral-800 bg-white/60"
+      >
+        <span>
+          This site is not affiliated with Vintage Story or Anego Studios |
+          Built by Ilan |
+          <NuxtLink
+            to="https://mods.vintagestory.at"
+            class="underline hover:text-neutral-900"
+          >
+            Vintage Story Mod DB
+          </NuxtLink>
+        </span>
+      </footer>
     </div>
   </div>
 </template>
@@ -50,9 +64,5 @@ const auth = useAuthStore();
     rgba(104, 80, 55, 0.65) 0%,
     rgba(179, 154, 121, 0.65) 100%
   );
-  box-sizing: border-box;
-  border-top-left-radius: 4px;
-  border-top-right-radius: 4px;
-  clear: both;
 }
 </style>
