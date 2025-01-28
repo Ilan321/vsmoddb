@@ -1,6 +1,58 @@
+<script setup lang="ts">
+import useAuthStore from './store/auth';
+
+const auth = useAuthStore();
+</script>
+
 <template>
-  <div>
-    <NuxtRouteAnnouncer />
-    <NuxtWelcome />
+  <div
+    id="app"
+    data-testid="app"
+    class="min-h-screen flex flex-col justify-start items-center"
+  >
+    <div data-testid="content" class="container">
+      <div data-testid="logo" class="my-4">
+        <router-link to="/">
+          <img class="w-72" src="/assets/img/vsmoddb-logo-s.png" />
+        </router-link>
+      </div>
+      <nav
+        data-testid="nav"
+        class="navigation flex flex-row text-white rounded-t"
+      >
+        <nav-item to="/">Home</nav-item>
+        <nav-item to="/mods">Mods</nav-item>
+        <nav-item to="/submit">Submit a mod</nav-item>
+        <nav-item to="https://wiki.vintagestory.at/Troubleshooting_Mods"
+          >Mod troubleshooting</nav-item
+        >
+      </nav>
+      <div class="content-inner bg-neutral-200">
+        <NuxtPage />
+      </div>
+    </div>
   </div>
 </template>
+
+<style>
+#app {
+  background-image: url('/assets/img/background.jpg');
+  background-attachment: fixed;
+  background-size: cover;
+}
+
+.navigation {
+  font-size: 125%;
+  width: 100%;
+  background: rgb(31, 26, 21);
+  background: linear-gradient(
+    0deg,
+    rgba(104, 80, 55, 0.65) 0%,
+    rgba(179, 154, 121, 0.65) 100%
+  );
+  box-sizing: border-box;
+  border-top-left-radius: 4px;
+  border-top-right-radius: 4px;
+  clear: both;
+}
+</style>
