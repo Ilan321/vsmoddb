@@ -24,7 +24,10 @@ const latestMods = useFetch<ModDisplayModel[]>('/api/v1/mods/latest');
       </p>
     </div>
     <div v-else>Your mods</div>
-    <h2 class="text-xl mt-4 mb-2">Latest 10 mods</h2>
+    <div class="flex justify-start gap-2 align-center mt-4 mb-2">
+      <h2 class="text-xl">Latest 10 mods</h2>
+      <spinner v-if="latestMods.status.value === 'pending'" />
+    </div>
     <div v-if="latestMods.data.value" class="flex flex-row flex-wrap gap-2">
       <mod-card v-for="mod of latestMods.data.value" :key="mod.id" :mod="mod" />
       <!-- <div v-for="mod of latestMods.data.value" :key="mod.name">
