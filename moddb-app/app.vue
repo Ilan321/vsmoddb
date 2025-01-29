@@ -27,11 +27,11 @@ const auth = useAuthStore();
           >Mod troubleshooting</nav-item
         >
       </nav>
-      <div class="content-inner bg-neutral-200 px-4 py-2">
+      <div class="content-inner px-4 py-2">
         <NuxtPage />
       </div>
       <footer
-        class="mt-2 py-1 px-2 flex flex-row text-sm text-neutral-800 bg-white/60"
+        class="mt-2 py-1 px-2 flex flex-row text-sm text-neutral-800 bg-white/80"
       >
         <span>
           This site is not affiliated with Vintage Story or Anego Studios |
@@ -64,5 +64,9 @@ const auth = useAuthStore();
     rgba(104, 80, 55, 0.65) 0%,
     rgba(179, 154, 121, 0.65) 100%
   );
+}
+
+.content-inner {
+  background-color: rgba(255, 252, 244, 0.98);
 }
 </style>

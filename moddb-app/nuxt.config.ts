@@ -4,7 +4,7 @@ import tailwindcss from '@tailwindcss/vite';
 export default defineNuxtConfig({
   compatibilityDate: '2024-11-01',
   devtools: { enabled: true },
-  modules: ['@pinia/nuxt'],
+  modules: ['@pinia/nuxt', '@vesp/nuxt-fontawesome'],
   css: ['~/assets/main.css'],
   app: {
     head: {
@@ -18,5 +18,15 @@ export default defineNuxtConfig({
   },
   vite: {
     plugins: [tailwindcss()]
+  },
+  routeRules: {
+    '/api/**': {
+      proxy: `${import.meta.env.PROXY_URL}/api/**`
+    }
+  },
+  fontawesome: {
+    icons: {
+      solid: ['download', 'comments']
+    }
   }
 });
