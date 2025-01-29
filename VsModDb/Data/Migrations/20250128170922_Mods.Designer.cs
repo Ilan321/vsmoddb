@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using VsModDb.Data;
 
@@ -11,9 +12,11 @@ using VsModDb.Data;
 namespace VsModDb.Data.Migrations
 {
     [DbContext(typeof(ModDbContext))]
-    partial class ModDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250128170922_Mods")]
+    partial class Mods
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -155,34 +158,6 @@ namespace VsModDb.Data.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
-            modelBuilder.Entity("VsModDb.Data.Entities.Assets.Asset", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("AssetPath")
-                        .IsRequired()
-                        .HasMaxLength(256)
-                        .HasColumnType("nvarchar(256)");
-
-                    b.Property<string>("ContentType")
-                        .IsRequired()
-                        .HasMaxLength(128)
-                        .HasColumnType("nvarchar(128)");
-
-                    b.Property<string>("FileName")
-                        .IsRequired()
-                        .HasMaxLength(256)
-                        .HasColumnType("nvarchar(256)");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("Asset");
-                });
-
             modelBuilder.Entity("VsModDb.Data.Entities.Mod", b =>
                 {
                     b.Property<int>("Id")
@@ -190,9 +165,6 @@ namespace VsModDb.Data.Migrations
                         .HasColumnType("int");
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<int?>("BannerId")
-                        .HasColumnType("int");
 
                     b.Property<string>("Description")
                         .HasMaxLength(-1)
@@ -223,10 +195,6 @@ namespace VsModDb.Data.Migrations
                         .HasColumnType("nvarchar(256)");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("BannerId")
-                        .IsUnique()
-                        .HasFilter("[BannerId] IS NOT NULL");
 
                     b.HasIndex("Name");
 
@@ -378,16 +346,6 @@ namespace VsModDb.Data.Migrations
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-                });
-
-            modelBuilder.Entity("VsModDb.Data.Entities.Mod", b =>
-                {
-                    b.HasOne("VsModDb.Data.Entities.Assets.Asset", "Banner")
-                        .WithOne()
-                        .HasForeignKey("VsModDb.Data.Entities.Mod", "BannerId")
-                        .OnDelete(DeleteBehavior.SetNull);
-
-                    b.Navigation("Banner");
                 });
 
             modelBuilder.Entity("VsModDb.Data.Entities.ModTag", b =>

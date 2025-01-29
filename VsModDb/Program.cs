@@ -1,9 +1,15 @@
+using ilandev.Extensions.Configuration;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
 using VsModDb.Data;
 using VsModDb.Data.Entities;
+using VsModDb.Data.Repositories;
 using VsModDb.Extensions;
+using VsModDb.Models.Options;
+using VsModDb.Services.Mods;
+using VsModDb.Services.Storage;
+using VsModDb.Services.Storage.Providers;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -25,7 +31,19 @@ builder.Services.AddIdentity<User, IdentityRole>(c =>
 
 builder.Services.ConfigureApplicationCookie(c => c.ConfigureApiDefaults());
 
-builder.Services.AddControllers();
+builder.Services
+    .AddScoped<IModService, ModService>()
+    .AddScoped<IStorageProvider, DiskStorageProvider>();
+
+builder.Services
+    .AddScoped<IModRepository, ModRepository>();
+
+builder.Services.ConfigureAppOptions<DiskStorageProviderOptions>(builder.Configuration);
+
+builder.Services.AddHttpClient();
+
+builder.Services.AddControllers()
+    .AddJsonOptions(f => f.JsonSerializerOptions.ConfigureDefaults());
 
 builder.Services.AddSwaggerGen();
 
