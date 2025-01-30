@@ -22,6 +22,7 @@ public class ModsController(
     IModService modService
 ) : ControllerBase
 {
+    [AllowAnonymous]
     [HttpGet]
     public async Task<GetModsResponse> GetMods(
         [FromQuery] ModSortType sort,
@@ -40,6 +41,7 @@ public class ModsController(
         throw new NotImplementedException();
     }
 
+    [AllowAnonymous]
     [HttpGet("latest")]
     [ResponseCache(Duration = 300)]
     public async Task<List<ModDisplayDto>> GetLatestMods(
