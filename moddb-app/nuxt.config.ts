@@ -4,7 +4,7 @@ import tailwindcss from '@tailwindcss/vite';
 export default defineNuxtConfig({
   compatibilityDate: '2024-11-01',
   devtools: { enabled: true },
-  modules: ['@pinia/nuxt', '@vesp/nuxt-fontawesome'],
+  modules: ['@pinia/nuxt', '@vesp/nuxt-fontawesome', '@nuxtjs/mdc'],
   css: ['~/assets/main.css'],
   app: {
     head: {
@@ -27,6 +27,11 @@ export default defineNuxtConfig({
   fontawesome: {
     icons: {
       solid: ['download', 'comments', 'spinner']
+    }
+  },
+  mdc: {
+    headings: {
+      anchorLinks: false
     }
   }
 });

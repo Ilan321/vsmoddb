@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import dayjs from 'dayjs';
+import { ModCommentContentType } from '~/models/enums/ModCommentContentType';
 import type { ModCommentModel } from '~/models/mods/ModCommentModel';
 import type { ModDisplayModel } from '~/models/mods/ModDisplayModel';
 
@@ -15,6 +16,13 @@ const props = withDefaults(
 
 const timeCreatedRelative = computed(() =>
   dayjs(props.comment.timeCreatedUtc).fromNow()
+);
+
+const isHtml = computed(
+  () => props.comment.contentType === ModCommentContentType.Html
+);
+const isMarkdown = computed(
+  () => props.comment.contentType === ModCommentContentType.Markdown
 );
 </script>
 
@@ -36,7 +44,16 @@ const timeCreatedRelative = computed(() =>
     <div
       class="mod-comment__body bg-secondary px-2 py-1 max-h-32 overflow-y-auto"
     >
-      <div v-html="props.comment.comment"></div>
+      <div
+        v-if="isHtml"
+        class="mod-comment__body--html"
+        v-html="props.comment.comment"
+      ></div>
+      <MDC
+        v-else-if="isMarkdown"
+        class="mod-comment__body--markdown"
+        :value="props.comment.comment"
+      />
     </div>
   </div>
 </template>
@@ -56,6 +73,27 @@ const timeCreatedRelative = computed(() =>
   a {
     color: var(--color-blue-700);
     text-decoration: underline;
+  }
+}
+
+.mod-comment__body--markdown {
+  h1 {
+    font-size: var(--text-2xl);
+  }
+  h2 {
+    font-size: var(--text-xl);
+  }
+  h3 {
+    font-size: var(--text-lg);
+  }
+  h4 {
+    font-size: var(--text-base);
+  }
+  h5 {
+    font-size: var(--text-sm);
+  }
+  h6 {
+    font-size: var(--text-xs);
   }
 }
 </style>
