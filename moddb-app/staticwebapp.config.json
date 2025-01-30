@@ -10,7 +10,7 @@
     },
     {
       "route": "/api/*",
-      "rewrite": "https://vsmoddb-api-c6a6c4dwd8aydwdu.westeurope-01.azurewebsites.net/api/*"
+      "rewrite": "https://vsmoddb-api-c6a6c4dwd8aydwdu.westeurope-01.azurewebsites.net/api/"
     }
   ],
   "platform": {
