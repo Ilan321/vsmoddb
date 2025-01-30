@@ -31,8 +31,8 @@ store.initAsync();
 
 <template>
   <div class="mods">
-    <h3 class="mods__title">Filter</h3>
-    <div class="flex flex-row gap-2">
+    <h3 class="mods__title hidden">Filter</h3>
+    <div class="flex flex-row gap-2 hidden">
       <v-input
         class="max-w-64"
         v-model="store.filter.text"
