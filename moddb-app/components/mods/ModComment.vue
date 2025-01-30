@@ -50,7 +50,7 @@ const isMarkdown = computed(
         class="mod-comment__body--html"
         v-html="props.comment.comment"
       ></div>
-      <MDC
+      <v-comment-renderer
         v-else-if="isMarkdown"
         class="mod-comment__body--markdown"
         :value="props.comment.comment"
@@ -78,27 +78,6 @@ const isMarkdown = computed(
 
   a:hover {
     color: var(--color-blue-600);
-  }
-}
-
-.mod-comment__body--markdown {
-  h1 {
-    font-size: var(--text-2xl);
-  }
-  h2 {
-    font-size: var(--text-xl);
-  }
-  h3 {
-    font-size: var(--text-lg);
-  }
-  h4 {
-    font-size: var(--text-base);
-  }
-  h5 {
-    font-size: var(--text-sm);
-  }
-  h6 {
-    font-size: var(--text-xs);
   }
 }
 </style>

@@ -2,12 +2,10 @@
 const props = defineProps<{
   items: { name: string; url?: string }[];
 }>();
-
-const items = computed(() => {});
 </script>
 
 <template>
-  <h2 class="breadcrumbs flex flex-row gap-2 text-lg">
+  <h2 class="breadcrumbs flex flex-row gap-2 text-lg font-semibold">
     <div
       v-for="(item, index) of props.items"
       :key="item.name"

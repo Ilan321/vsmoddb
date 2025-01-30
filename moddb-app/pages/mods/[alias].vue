@@ -2,40 +2,21 @@
 import type { ModCommentModel } from '~/models/mods/ModCommentModel';
 import type { ModDetailsModel } from '~/models/mods/ModDetailsModel';
 import ModComment from '~/components/mods/ModComment.vue';
+import Breadcrumbs from '~/components/Breadcrumbs.vue';
+import useModDetailsStore from '~/store/mod-details';
 
 const route = useRoute();
+const store = useModDetailsStore();
 
-const modAlias = computed(() => route.params.alias as string);
-
-const breadcrumbName = computed(() => {
-  if (modDetails.status.value === 'pending') {
-    return 'loading...';
+const pageName = computed(() => {
+  if (store.loading.value) {
+    return 'loading..';
   }
 
-  return modDetails.data.value!.name;
+  return store.mod.name!;
 });
 
-const apiCalls = computed(() => [modDetails, comments]);
-
-// TODO: handle loading errors
-
-const loading = computed(() =>
-  apiCalls.value.some((s) => s.status.value === 'pending')
-);
-
-const loadingError = computed(() =>
-  apiCalls.value.some((s) => s.status.value === 'error')
-);
-
-const modDetails = useFetch<ModDetailsModel>(`/api/v1/mods/${modAlias.value}`, {
-  ignoreResponseError: true
-});
-const comments = useFetch<ModCommentModel[]>(
-  `/api/v1/mods/${modAlias.value}/comments`,
-  {
-    ignoreResponseError: true
-  }
-);
+store.initAsync(route.params.alias as string);
 </script>
 
 <template>
@@ -48,33 +29,36 @@ const comments = useFetch<ModCommentModel[]>(
           url: '/mods'
         },
         {
-          name: breadcrumbName
+          name: pageName
         }
       ]"
     />
-    <div class="tabs flex flex-row border-b-2 border-black/20">
-      <tab :to="`/mods/${modAlias}`"> Description </tab>
-      <tab :to="`/mods/${modAlias}/files`"> Files </tab>
+    <div
+      v-if="!store.loading.value"
+      class="tabs flex flex-row border-b-2 border-black/20"
+    >
+      <tab :to="`/mods/${store.alias}`"> Description </tab>
+      <tab :to="`/mods/${store.alias}/files`"> Files </tab>
     </div>
-    <NuxtPage />
-    <div class="mod-page__comments" id="comments">
+    <NuxtPage v-if="!store.loading.value" />
+    <!-- <div class="mod-page__comments" id="comments">
       <div class="mod-page__comments-header">
-        <h3 v-if="comments.status.value === 'pending'">Loading comments..</h3>
+        <h3 v-if="store.comments.loading">Loading comments..</h3>
         <template v-else>
           <h3 class="text-lg mb-2">
-            {{ comments.data.value!.length }} comments
+            {{ store.comments.data.value!.length }} comments
           </h3>
           <div
             class="mod-page__comments-container flex flex-col justify-start items-start gap-2"
           >
             <mod-comment
-              v-for="comment of comments.data.value!"
+              v-for="comment of store.comments.data.value!"
               :key="comment.id"
               :comment="comment"
             />
           </div>
         </template>
       </div>
-    </div>
+    </div> -->
   </div>
 </template>
