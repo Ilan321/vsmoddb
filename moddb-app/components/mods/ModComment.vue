@@ -9,10 +9,12 @@ const props = withDefaults(
     comment: ModCommentModel;
     mod?: ModDisplayModel;
     author?: boolean;
+    short?: boolean;
   }>(),
   {
     mod: undefined,
-    author: false
+    author: false,
+    short: false
   }
 );
 
@@ -32,7 +34,12 @@ const isMarkdown = computed(
   <div class="mod-comment w-full border border-gray-400 rounded bg-primary">
     <div class="mod-comment__title">
       💬
-      {{ props.comment.author }}
+      <NuxtLink
+        :to="`/users/${props.comment.author}`"
+        class="underline me-1 hover:text-gray-800"
+      >
+        {{ props.comment.author }}
+      </NuxtLink>
       <span
         v-if="props.author"
         class="text-xs rounded px-1 text-white bg-blue-900 me-1"
@@ -51,7 +58,11 @@ const isMarkdown = computed(
       </span>
     </div>
     <div
-      class="mod-comment__body bg-secondary px-2 py-1 max-h-32 overflow-y-auto"
+      class="mod-comment__body bg-secondary px-2 py-1 overflow-y-auto"
+      :class="{
+        'max-h-32': props.short,
+        'max-h-96': !props.short
+      }"
     >
       <v-comment-renderer :value="props.comment.comment" />
     </div>

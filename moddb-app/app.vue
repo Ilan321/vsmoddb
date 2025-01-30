@@ -49,6 +49,8 @@ const auth = useAuthStore();
 </template>
 
 <style>
+@reference '@/main.css';
+
 #app {
   background-image: url('/assets/img/background.jpg');
   background-attachment: fixed;
@@ -68,5 +70,9 @@ const auth = useAuthStore();
 
 .content-inner {
   background-color: rgba(255, 252, 244, 0.98);
+}
+
+a.link {
+  @apply hover:text-gray-800 underline;
 }
 </style>

@@ -55,6 +55,7 @@ const latestModComments = useFetch<LatestModCommentModel[]>(
         :key="comment.comment.id"
         :comment="comment.comment"
         :mod="comment.mod"
+        short
       />
     </div>
   </div>

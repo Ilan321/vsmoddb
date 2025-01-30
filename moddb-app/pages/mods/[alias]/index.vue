@@ -39,7 +39,9 @@ const timeUpdatedReadable = computed(() =>
         </div>
         <div>
           <span class="text-gray-600"> Author: </span>
-          <span>{{ store.mod.author }} </span>
+          <NuxtLink :to="`/users/${store.mod.author}`" class="link"
+            >{{ store.mod.author }}
+          </NuxtLink>
         </div>
         <div>
           <span class="text-gray-600"> Side: </span>
