@@ -31,7 +31,8 @@ const isMarkdown = computed(
     <div class="mod-comment__title">
       💬
       {{ props.comment.author }}
-      <span class="text-xs">{{ timeCreatedRelative }}, </span>
+      <span v-if="!props.mod" class="text-xs">{{ timeCreatedRelative }} </span>
+      <span v-else class="text-xs">{{ timeCreatedRelative }}, </span>
       <span v-if="props.mod" class="text-xs text-gray-600">
         in
         <NuxtLink

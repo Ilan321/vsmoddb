@@ -32,13 +32,24 @@ const latestModComments = useFetch<LatestModCommentModel[]>(
     <div class="flex justify-start gap-2 align-center mt-4 mb-2">
       <h2 class="text-xl">Latest 10 mods</h2>
       <spinner v-if="latestMods.status.value === 'pending'" />
+      <error-icon
+        v-if="latestModComments.status.value === 'error'"
+        tooltip="An error occurred while loading the latest mods"
+      />
     </div>
-    <div v-if="latestMods.data.value" class="flex flex-row flex-wrap gap-2">
+    <div
+      v-if="latestMods.data.value"
+      class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 2xl:grid-cols-5 gap-2"
+    >
       <mod-card v-for="mod of latestMods.data.value" :key="mod.id" :mod="mod" />
     </div>
     <div class="flex justify-start gap-2 align-center mt-4 mb-2">
       <h2 class="text-xl">Latest 20 comments</h2>
       <spinner v-if="latestModComments.status.value === 'pending'" />
+      <error-icon
+        v-if="latestModComments.status.value === 'error'"
+        tooltip="An error occurred while loading the latest comments"
+      />
     </div>
     <div v-if="latestModComments.data.value" class="flex flex-col gap-2">
       <mod-comment

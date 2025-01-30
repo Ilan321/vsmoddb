@@ -22,7 +22,7 @@ const auth = useAuthStore();
       >
         <nav-item to="/">Home</nav-item>
         <nav-item to="/mods">Mods</nav-item>
-        <nav-item to="/submit">Submit a mod</nav-item>
+        <nav-item v-if="auth.isLoggedIn" to="/submit">Submit a mod</nav-item>
         <nav-item to="https://wiki.vintagestory.at/Troubleshooting_Mods"
           >Mod troubleshooting</nav-item
         >

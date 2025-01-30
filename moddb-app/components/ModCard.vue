@@ -17,33 +17,44 @@ const bannerUrl = computed(() => `/api/v1/mods/${props.mod.id}/banner`);
 </script>
 
 <template>
-  <NuxtLink :to="url">
-    <div
-      class="mod-card h-72 w-[300px] max-w-sm shadow grow bg-white/60 overflow-hidden"
-    >
+  <div
+    class="mod-card h-72 grow shadow hover:shadow-xl transition-shadow shrink bg-white/60"
+    :title="props.mod.name"
+  >
+    <NuxtLink :to="url">
       <div class="mod-card__banner">
         <img :src="bannerUrl" class="w-full h-48 inline-block object-cover" />
       </div>
-      <div class="mod-card__details px-2 py-1 grid grid-cols-[1fr_auto] gap-2">
-        <div class="mod-card__name">
-          <div class="font-bold">
+    </NuxtLink>
+    <div class="mod-card__details px-2 py-1 grid grid-cols-[1fr_auto] gap-2">
+      <div class="mod-card__name truncate">
+        <NuxtLink :to="url">
+          <div class="font-bold whitespace-normal line-clamp-2">
             {{ props.mod.name }}
           </div>
-          <div class="text-sm">
+          <div class="text-sm h-full whitespace-normal line-clamp-2">
             {{ props.mod.summary }}
           </div>
-        </div>
-        <div class="mod-card__stats">
-          <div class="mod-card__downloads">
+        </NuxtLink>
+      </div>
+      <div class="mod-card__stats">
+        <div
+          class="mod-card__downloads px-1 rounded transition-colors hover:bg-black/20"
+        >
+          <NuxtLink :to="`${url}/downloads`">
             <font-awesome icon="download" />
             {{ props.mod.downloads }}
-          </div>
-          <div class="mod-card__comments">
+          </NuxtLink>
+        </div>
+        <div
+          class="mod-card__comments px-1 rounded transition-colors hover:bg-black/20"
+        >
+          <NuxtLink :to="`${url}#comments`">
             <font-awesome icon="comments" />
             {{ props.mod.comments }}
-          </div>
+          </NuxtLink>
         </div>
       </div>
     </div>
-  </NuxtLink>
+  </div>
 </template>

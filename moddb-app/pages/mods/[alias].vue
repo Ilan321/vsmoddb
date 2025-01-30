@@ -15,9 +15,26 @@ const breadcrumbName = computed(() => {
   return modDetails.data.value!.name;
 });
 
-const modDetails = useFetch<ModDetailsModel>(`/api/v1/mods/${modAlias.value}`);
+const apiCalls = computed(() => [modDetails, comments]);
+
+// TODO: handle loading errors
+
+const loading = computed(() =>
+  apiCalls.value.some((s) => s.status.value === 'pending')
+);
+
+const loadingError = computed(() =>
+  apiCalls.value.some((s) => s.status.value === 'error')
+);
+
+const modDetails = useFetch<ModDetailsModel>(`/api/v1/mods/${modAlias.value}`, {
+  ignoreResponseError: true
+});
 const comments = useFetch<ModCommentModel[]>(
-  `/api/v1/mods/${modAlias.value}/comments`
+  `/api/v1/mods/${modAlias.value}/comments`,
+  {
+    ignoreResponseError: true
+  }
 );
 </script>
 
@@ -44,7 +61,9 @@ const comments = useFetch<ModCommentModel[]>(
       <div class="mod-page__comments-header">
         <h3 v-if="comments.status.value === 'pending'">Loading comments..</h3>
         <template v-else>
-          <h3 class="">{{ comments.data.value!.length }} comments</h3>
+          <h3 class="text-lg mb-2">
+            {{ comments.data.value!.length }} comments
+          </h3>
           <div
             class="mod-page__comments-container flex flex-col justify-start items-start gap-2"
           >
