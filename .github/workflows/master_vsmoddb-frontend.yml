@@ -32,7 +32,7 @@ jobs:
         working-directory: ./moddb-app
 
       - name: Zip artifact for deployment
-        run: zip release.zip ./moddb-app/* -r
+        run: zip release.zip ./moddb-app/.output/* -r
 
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
@@ -73,4 +73,5 @@ jobs:
           app-name: 'vsmoddb-frontend'
           slot-name: 'Production'
           package: .
+          startup-command: node server/index.mjs
           
