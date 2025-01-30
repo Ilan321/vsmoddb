@@ -1,7 +1,7 @@
 # Docs for the Azure Web Apps Deploy action: https://github.com/Azure/webapps-deploy
 # More GitHub Actions for Azure: https://github.com/Azure/actions
 
-name: Build and deploy Node.js app to Azure Web App - vsmoddb-frontend
+name: deploy frontend v2
 
 on:
   push:
@@ -29,7 +29,7 @@ jobs:
         run: |
           yarn
           yarn build --preset=node-server
-        working-directory: /moddb-app
+        working-directory: ./moddb-app
 
       - name: Zip artifact for deployment
         run: zip release.zip ./moddb-app/* -r
