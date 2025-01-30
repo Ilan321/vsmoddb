@@ -8,7 +8,8 @@ const props = defineProps<{
   <NuxtLink
     :to="props.to"
     active-class="nav-item--active text-black"
-    class="nav-item me-4 px-4 first:rounded-tl"
+    class="nav-item py-1 md:py-0 px-4 first:rounded-tl first:rounded-tr
+      md:first:rounded-tr-none"
   >
     <slot></slot>
   </NuxtLink>
