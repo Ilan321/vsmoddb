@@ -22,7 +22,8 @@ const timeCreatedRelative = computed(() =>
   <div class="mod-comment w-full border border-gray-400 rounded bg-primary">
     <div class="mod-comment__title">
       💬
-      {{ props.comment.author }}, {{ timeCreatedRelative }},
+      {{ props.comment.author }}
+      <span class="text-xs">{{ timeCreatedRelative }}, </span>
       <span v-if="props.mod" class="text-xs text-gray-600">
         in
         <NuxtLink
@@ -32,7 +33,9 @@ const timeCreatedRelative = computed(() =>
         >
       </span>
     </div>
-    <div class="mod-comment__body bg-secondary px-2 py-1">
+    <div
+      class="mod-comment__body bg-secondary px-2 py-1 max-h-32 overflow-y-auto"
+    >
       <div v-html="props.comment.comment"></div>
     </div>
   </div>
@@ -48,6 +51,11 @@ const timeCreatedRelative = computed(() =>
 
   span.username:before {
     content: '@';
+  }
+
+  a {
+    color: var(--color-blue-700);
+    text-decoration: underline;
   }
 }
 </style>
