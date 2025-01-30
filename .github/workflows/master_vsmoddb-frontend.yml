@@ -27,7 +27,8 @@ jobs:
 
       - name: npm install, build, and test
         run: |
-          yarn
+          corepack enable
+          yarn install --immutable --immutable-cache
           yarn build --preset=node-server
         working-directory: ./moddb-app
 
