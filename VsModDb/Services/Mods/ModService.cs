@@ -139,7 +139,9 @@ public class ModService(
             TimeCreatedUtc = mod.TimeCreatedUtc,
             TimeUpdatedUtc = mod.TimeUpdatedUtc,
             Description = mod.Description,
-            UrlAlias = mod.UrlAlias
+            UrlAlias = mod.UrlAlias,
+            Author = null!,
+            Side = null!
         };
     }
 

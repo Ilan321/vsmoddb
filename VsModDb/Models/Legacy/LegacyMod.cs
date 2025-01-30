@@ -22,4 +22,6 @@ public class LegacyMod
     
     [JsonConverter(typeof(LegacyDateTimeJsonConverter))]
     public required DateTime LastReleased { get; init; }
+
+    public int TrendingPoints { get; set; }
 }

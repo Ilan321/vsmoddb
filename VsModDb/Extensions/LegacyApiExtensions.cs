@@ -8,7 +8,7 @@ public static class LegacyApiExtensions
 {
     public const string DateTimeFormat = "yyyy-MM-dd HH:mm:ss";
 
-    public static DateTime ParseDateTime(string dt) => DateTime.ParseExact(dt, DateTimeFormat, CultureInfo.InvariantCulture, DateTimeStyles.AdjustToUniversal);
+    public static DateTime ParseDateTime(string dt) => DateTime.ParseExact(dt, DateTimeFormat, CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal);
 
     public static void EnsureSuccessStatusCode(this BaseLegacyResponse? response)
     {

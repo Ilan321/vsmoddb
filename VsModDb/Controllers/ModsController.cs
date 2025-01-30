@@ -6,6 +6,7 @@ using Microsoft.Extensions.Options;
 using VsModDb.Data;
 using VsModDb.Models.Mods;
 using VsModDb.Models.Options;
+using VsModDb.Models.Responses.Mods;
 using VsModDb.Services.LegacyApi;
 using VsModDb.Services.Mods;
 
@@ -21,6 +22,24 @@ public class ModsController(
     IModService modService
 ) : ControllerBase
 {
+    [HttpGet]
+    public async Task<GetModsResponse> GetMods(
+        [FromQuery] ModSortType sort,
+        [FromQuery] ModSortDirection direction,
+        [FromQuery] int take,
+        [FromQuery] int skip,
+        [FromQuery] string? author,
+        CancellationToken cancellationToken
+    )
+    {
+        if (legacyOptions.Value.Enabled)
+        {
+            return await legacyApiClient.GetModsAsync(sort, direction, take, skip, author, cancellationToken);
+        }
+
+        throw new NotImplementedException();
+    }
+
     [HttpGet("latest")]
     [ResponseCache(Duration = 300)]
     public async Task<List<ModDisplayDto>> GetLatestMods(

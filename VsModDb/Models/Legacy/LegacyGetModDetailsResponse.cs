@@ -28,4 +28,5 @@ public class LegacyModDetails
     public DateTime LastModified { get; init; }
 
     public required string[] Tags { get; init; }
+    public string Side { get; set; }
 }
