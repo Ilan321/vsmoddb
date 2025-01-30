@@ -32,7 +32,7 @@ jobs:
 
       - name: yarn install && build
         run: |
-          yarn install --immutable --immutable-cache
+          yarn
           yarn build --preset=node-server
         working-directory: ./moddb-app
 
