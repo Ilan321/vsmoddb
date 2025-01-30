@@ -1,9 +1,14 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using System.Net.Mime;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Options;
 using VsModDb.Models.Assets;
+using VsModDb.Models.Exceptions;
 using VsModDb.Models.Mods;
+using VsModDb.Models.Options;
 using VsModDb.Models.Requests.Mods;
+using VsModDb.Services.LegacyApi;
 using VsModDb.Services.Mods;
 using VsModDb.Services.Storage;
 
@@ -14,6 +19,8 @@ namespace VsModDb.Controllers;
 [Route("api/v1/mods/{alias}")]
 public class ModController(
     ILogger<ModController> log,
+    IOptions<LegacyClientOptions> legacyOptions,
+    ILegacyApiClient apiClient,
     IModService modService
 ) : ModDbController
 {
@@ -25,6 +32,18 @@ public class ModController(
         CancellationToken cancellationToken
     )
     {
+        if (legacyOptions.Value.Enabled)
+        {
+            var logoStream = await apiClient.GetModLogoAsync(alias, cancellationToken);
+
+            if (logoStream is null)
+            {
+                return TypedResults.NotFound();
+            }
+
+            return TypedResults.Stream(logoStream, MediaTypeNames.Image.Png);
+        }
+
         var assetStream = await modService.GetBannerAsync(alias, cancellationToken);
 
         if (assetStream is null)
@@ -42,6 +61,11 @@ public class ModController(
         CancellationToken cancellationToken
     )
     {
+        if (legacyOptions.Value.Enabled)
+        {
+            throw new LegacyApiEnabledException();
+        }
+
         log.LogInformation("Received request to update mod banner for mod {modId}", alias);
 
         if (!await modService.IsUserContributorAsync(alias, await CurrentUser, cancellationToken))
@@ -67,7 +91,9 @@ public class ModController(
         CancellationToken cancellationToken
     )
     {
-        var mod = await modService.GetModDetailsAsync(alias, cancellationToken);
+        var mod = legacyOptions.Value.Enabled
+        ? await apiClient.GetModAsync(alias, cancellationToken)
+        : await modService.GetModDetailsAsync(alias, cancellationToken);
 
         if (mod is null)
         {
@@ -84,7 +110,9 @@ public class ModController(
         CancellationToken cancellationToken
     )
     {
-        var comments = await modService.GetModCommentsAsync(alias, cancellationToken);
+        var comments = legacyOptions.Value.Enabled
+            ? await apiClient.GetModCommentsAsync(alias, cancellationToken)
+            : await modService.GetModCommentsAsync(alias, cancellationToken);
 
         return TypedResults.Ok(comments);
     }

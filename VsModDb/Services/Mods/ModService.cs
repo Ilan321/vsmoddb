@@ -163,6 +163,11 @@ public class ModService(
     {
         if (int.TryParse(alias, out var parsedId))
         {
+            if (!await modRepository.DoesModExistAsync(parsedId, cancellationToken))
+            {
+                throw new ModNotFoundException(parsedId);
+            }
+
             return parsedId;
         }
 

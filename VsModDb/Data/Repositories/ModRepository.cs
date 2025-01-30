@@ -20,6 +20,7 @@ public interface IModRepository
     Task<Mod?> FindModByUrlAliasAsync(string urlAlias, CancellationToken cancellationToken = default);
     Task<int?> FindModIdByAliasAsync(string alias, CancellationToken cancellationToken = default);
     Task<List<ModComment>> GetCommentsByModIdAsync(int modId, CancellationToken cancellationToken = default);
+    Task<bool> DoesModExistAsync(int id, CancellationToken cancellationToken = default);
 }
 
 public class ModRepository(
@@ -63,6 +64,11 @@ public class ModRepository(
 
         return mod.Comments.ToList();
     }
+
+    public Task<bool> DoesModExistAsync(int id, CancellationToken cancellationToken = default) => context
+        .Mods
+        .Where(f => f.Id == id)
+        .AnyAsync(cancellationToken: cancellationToken);
 
     public async Task UpdateModBannerAsync(
         int id,

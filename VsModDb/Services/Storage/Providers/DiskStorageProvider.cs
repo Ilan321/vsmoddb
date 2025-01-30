@@ -39,6 +39,11 @@ public class DiskStorageProvider(IOptions<DiskStorageProviderOptions> options) :
         await stream.CopyToAsync(fs, cancellationToken);
     }
 
+    public Task<bool> DoesFileExistAsync(string assetPath, CancellationToken cancellationToken = default) =>
+        Task.FromResult(
+            File.Exists(Path.Combine(options.Value.BasePath, assetPath))
+        );
+
     private void EnsureBaseDirectoryCreated()
     {
         if (Directory.Exists(options.Value.BasePath))

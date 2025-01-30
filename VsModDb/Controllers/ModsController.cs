@@ -2,8 +2,11 @@
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using VsModDb.Data;
 using VsModDb.Models.Mods;
+using VsModDb.Models.Options;
+using VsModDb.Services.LegacyApi;
 using VsModDb.Services.Mods;
 
 namespace VsModDb.Controllers;
@@ -11,7 +14,12 @@ namespace VsModDb.Controllers;
 [Authorize]
 [ApiController]
 [Route("api/v1/mods")]
-public class ModsController(ModDbContext context, IModService modService) : ControllerBase
+public class ModsController(
+    IOptions<LegacyClientOptions> legacyOptions,
+    ILegacyApiClient legacyApiClient,
+    ModDbContext context, 
+    IModService modService
+) : ControllerBase
 {
     [HttpGet("latest")]
     [ResponseCache(Duration = 300)]
@@ -20,6 +28,11 @@ public class ModsController(ModDbContext context, IModService modService) : Cont
         CancellationToken cancellationToken = default
     )
     {
+        if (legacyOptions.Value.Enabled)
+        {
+            return await legacyApiClient.GetLatestModsAsync(cancellationToken);
+        }
+
         var mods = await context.Mods
             .AsNoTracking()
             .OrderByDescending(f => f.Id)
@@ -41,6 +54,11 @@ public class ModsController(ModDbContext context, IModService modService) : Cont
     [HttpGet("latest/comments")]
     public async Task<List<LatestModCommentDto>> GetLatestModComments(CancellationToken cancellationToken = default)
     {
+        if (legacyOptions.Value.Enabled)
+        {
+            return await legacyApiClient.GetLatestModCommentsAsync(cancellationToken);
+        }
+
         var comments = await context
             .ModComments
             .AsNoTracking()
