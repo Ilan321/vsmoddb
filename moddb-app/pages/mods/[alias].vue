@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import type { ModCommentModel } from '~/models/mods/ModCommentModel';
-import type { ModDetailsModel } from '~/models/mods/ModDetailsModel';
 import ModComment from '~/components/mods/ModComment.vue';
 import Breadcrumbs from '~/components/Breadcrumbs.vue';
 import useModDetailsStore from '~/store/mod-details';
@@ -41,24 +39,25 @@ store.initAsync(route.params.alias as string);
       <tab :to="`/mods/${store.alias}/files`"> Files </tab>
     </div>
     <NuxtPage v-if="!store.loading.value" />
-    <!-- <div class="mod-page__comments" id="comments">
+    <div class="mod-page__comments" id="comments">
       <div class="mod-page__comments-header">
-        <h3 v-if="store.comments.loading">Loading comments..</h3>
+        <h3 v-if="store.comments.loading.value">Loading comments..</h3>
         <template v-else>
           <h3 class="text-lg mb-2">
-            {{ store.comments.data.value!.length }} comments
+            {{ store.comments.value.length }} comments
           </h3>
           <div
             class="mod-page__comments-container flex flex-col justify-start items-start gap-2"
           >
             <mod-comment
-              v-for="comment of store.comments.data.value!"
+              v-for="comment of store.comments.value"
               :key="comment.id"
               :comment="comment"
+              :author="comment.author === store.mod.author"
             />
           </div>
         </template>
       </div>
-    </div> -->
+    </div>
   </div>
 </template>

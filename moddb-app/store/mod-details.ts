@@ -1,6 +1,7 @@
 import type { ModDetailsModel } from '~/models/mods/ModDetailsModel';
 import type { TagModel } from '~/models/TagModel';
 import { ModSideFilter } from './mods';
+import type { ModCommentModel } from '~/models/mods/ModCommentModel';
 
 function getState() {
   return {
@@ -20,6 +21,13 @@ function getState() {
       timeCreatedUtc: undefined as string | undefined,
       timeUpdatedUtc: undefined as string | undefined,
       downloads: 0
+    },
+    comments: {
+      loading: {
+        value: false,
+        id: undefined as string | undefined
+      },
+      value: [] as ModCommentModel[]
     }
   };
 }
@@ -28,6 +36,8 @@ const useModDetailsStore = defineStore('mod-details', {
   state: getState,
   actions: {
     async initAsync(modAlias: string) {
+      this.$reset();
+
       this.alias = modAlias;
 
       return this.refreshAsync();
@@ -41,9 +51,10 @@ const useModDetailsStore = defineStore('mod-details', {
       try {
         // Fetch mod details
 
-        const response = await useFetch<ModDetailsModel>(
-          '/api/v1/mods/' + this.alias
-        );
+        const [_, response] = await Promise.all([
+          this.refreshComments(),
+          useFetch<ModDetailsModel>('/api/v1/mods/' + this.alias)
+        ]);
 
         if (!checkLoadToken(this.loading.id, loadId)) {
           return;
@@ -63,6 +74,27 @@ const useModDetailsStore = defineStore('mod-details', {
         this.mod.downloads = mod.downloads;
       } finally {
         if (checkLoadToken(this.loading.id, loadId)) this.loading.value = false;
+      }
+    },
+    async refreshComments() {
+      this.comments.loading.value = true;
+
+      const loadId = getLoadToken();
+      this.comments.loading.id = loadId;
+
+      try {
+        const response = await useFetch<ModCommentModel[]>(
+          `/api/v1/mods/${this.alias}/comments`
+        );
+
+        if (!checkLoadToken(this.comments.loading.id, loadId)) {
+          return;
+        }
+
+        this.comments.value = response.data.value!;
+      } finally {
+        if (checkLoadToken(this.comments.loading.id, loadId))
+          this.comments.loading.value = false;
       }
     }
   },

@@ -8,9 +8,11 @@ const props = withDefaults(
   defineProps<{
     comment: ModCommentModel;
     mod?: ModDisplayModel;
+    author?: boolean;
   }>(),
   {
-    mod: undefined
+    mod: undefined,
+    author: false
   }
 );
 
@@ -31,6 +33,12 @@ const isMarkdown = computed(
     <div class="mod-comment__title">
       💬
       {{ props.comment.author }}
+      <span
+        v-if="props.author"
+        class="text-xs rounded px-1 text-white bg-blue-900 me-1"
+      >
+        Author
+      </span>
       <span v-if="!props.mod" class="text-xs">{{ timeCreatedRelative }} </span>
       <span v-else class="text-xs">{{ timeCreatedRelative }}, </span>
       <span v-if="props.mod" class="text-xs text-gray-600">
@@ -45,39 +53,7 @@ const isMarkdown = computed(
     <div
       class="mod-comment__body bg-secondary px-2 py-1 max-h-32 overflow-y-auto"
     >
-      <div
-        v-if="isHtml"
-        class="mod-comment__body--html"
-        v-html="props.comment.comment"
-      ></div>
-      <v-comment-renderer
-        v-else-if="isMarkdown"
-        class="mod-comment__body--markdown"
-        :value="props.comment.comment"
-      />
+      <v-comment-renderer :value="props.comment.comment" />
     </div>
   </div>
 </template>
-
-<style>
-.mod-comment__body {
-  span.username {
-    background-color: rgba(159, 207, 52, 0.5);
-    border-radius: 4px;
-    padding: 2px 3px;
-  }
-
-  span.username:before {
-    content: '@';
-  }
-
-  a {
-    color: var(--color-blue-700);
-    text-decoration: underline;
-  }
-
-  a:hover {
-    color: var(--color-blue-600);
-  }
-}
-</style>

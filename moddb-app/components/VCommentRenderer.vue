@@ -43,7 +43,7 @@ function handleClick(element: HTMLElement) {
 
 .v-comment-renderer {
   p {
-    @apply mb-2;
+    @apply not-last:mb-2;
   }
 
   a {
@@ -137,6 +137,17 @@ function handleClick(element: HTMLElement) {
         }
       }
     }
+  }
+
+  .mention.username {
+    background-color: rgba(159, 207, 52, 0.5);
+    @apply rounded;
+    @apply px-1 py-0;
+    @apply me-1;
+  }
+
+  .mention.username:before {
+    content: '@';
   }
 }
 </style>
