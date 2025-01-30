@@ -20,12 +20,33 @@ const latestModComments = useFetch<LatestModCommentModel[]>(
       </h1>
       <p>
         The goal of this site is to provide a complete, modern rewrite of the
-        <NuxtLink
-          to="https://mods.vintagestory.at"
-          class="text-blue-600 hover:text-blue-700 transition-colors"
+        <NuxtLink to="https://mods.vintagestory.at" class="link-blue"
           >Vintage Story ModDB</NuxtLink
         >
         using .NET and Vue.js.
+      </p>
+      <p>
+        This site's still very much in alpha, so expect bugs and missing
+        features.
+      </p>
+      <p>
+        In the meantime, check out the
+        <NuxtLink to="/mods" class="link-blue">new mod list</NuxtLink>, and if
+        you're tech-savvy, take a look at the
+        <NuxtLink to="https://github.com/Ilan321/vsmoddb" class="link-blue"
+          >source code</NuxtLink
+        >!
+      </p>
+      <p class="text-sm mt-2">
+        In case it needs to be said: this site is not affiliated with Vintage
+        Story or Anego Studios. If you have any questions or concerns, feel free
+        to
+        <NuxtLink
+          to="https://discordapp.com/channels/@me/238803571867385857"
+          class="link-blue"
+          >contact me</NuxtLink
+        >
+        on Discord.
       </p>
     </div>
     <div v-else>Your mods</div>

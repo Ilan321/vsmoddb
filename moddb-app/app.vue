@@ -10,15 +10,18 @@ const auth = useAuthStore();
     data-testid="app"
     class="min-h-screen flex flex-col justify-start items-center"
   >
-    <div data-testid="content" class="container">
+    <div data-testid="content" class="container px-4">
       <div data-testid="logo" class="my-4">
         <router-link to="/">
-          <img class="w-72" src="/assets/img/vsmoddb-logo-s.png" />
+          <img
+            class="mx-auto md:mx-0 w-72"
+            src="/assets/img/vsmoddb-logo-s.png"
+          />
         </router-link>
       </div>
       <nav
         data-testid="nav"
-        class="navigation flex flex-row text-white rounded-t"
+        class="navigation flex flex-col md:flex-row md:gap-2 text-white rounded-t"
       >
         <nav-item to="/">Home</nav-item>
         <nav-item to="/mods">Mods</nav-item>
@@ -70,6 +73,10 @@ const auth = useAuthStore();
 
 .content-inner {
   background-color: rgba(255, 252, 244, 0.98);
+}
+
+a.link-blue {
+  @apply text-blue-600 hover:text-blue-700 transition-colors underline;
 }
 
 a.link {
