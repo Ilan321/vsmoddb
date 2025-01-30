@@ -18,15 +18,16 @@ const bannerUrl = computed(() => `/api/v1/mods/${props.mod.id}/banner`);
 
 <template>
   <div
-    class="mod-card h-72 grow shadow hover:shadow-xl transition-shadow shrink bg-white/60"
+    class="mod-card flex flex-col grow shadow hover:shadow-xl hover:outline outline-primary
+      transition-all shrink bg-white/60"
     :title="props.mod.name"
   >
-    <NuxtLink :to="url">
-      <div class="mod-card__banner">
+    <div class="mod-card__banner">
+      <NuxtLink :to="url">
         <img :src="bannerUrl" class="w-full h-48 inline-block object-cover" />
-      </div>
-    </NuxtLink>
-    <div class="mod-card__details px-2 py-1 grid grid-cols-[1fr_auto] gap-2">
+      </NuxtLink>
+    </div>
+    <div class="mod-card__details h-24 px-2 py-1">
       <div class="mod-card__name truncate">
         <NuxtLink :to="url">
           <div class="font-bold whitespace-normal line-clamp-2">
@@ -37,25 +38,25 @@ const bannerUrl = computed(() => `/api/v1/mods/${props.mod.id}/banner`);
           </div>
         </NuxtLink>
       </div>
-      <div class="mod-card__stats">
-        <NuxtLink :to="`${url}/files`">
-          <div
-            class="mod-card__downloads px-1 rounded transition-colors hover:bg-black/20"
-          >
-            <font-awesome icon="download" />
-            {{ props.mod.downloads }}
-          </div>
-        </NuxtLink>
+    </div>
+    <div class="mod-card__stats flex flex-row px-2 py-1 pb-2 gap-1">
+      <NuxtLink :to="`${url}/files`">
+        <div
+          class="mod-card__downloads px-1 rounded transition-colors hover:bg-black/10"
+        >
+          <font-awesome icon="download" />
+          {{ props.mod.downloads }}
+        </div>
+      </NuxtLink>
 
-        <NuxtLink :to="`${url}#comments`">
-          <div
-            class="mod-card__comments px-1 rounded transition-colors hover:bg-black/20"
-          >
-            <font-awesome icon="comments" />
-            {{ props.mod.comments }}
-          </div>
-        </NuxtLink>
-      </div>
+      <NuxtLink :to="`${url}#comments`">
+        <div
+          class="mod-card__comments px-1 rounded transition-colors hover:bg-black/10"
+        >
+          <font-awesome icon="comments" />
+          {{ props.mod.comments }}
+        </div>
+      </NuxtLink>
     </div>
   </div>
 </template>

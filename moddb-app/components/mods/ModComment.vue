@@ -37,7 +37,7 @@ const isMarkdown = computed(
         in
         <NuxtLink
           :to="`/mods/${props.mod.urlAlias || props.mod.id}`"
-          class="underline"
+          class="underline hover:text-gray-500"
           >{{ props.mod.name }}</NuxtLink
         >
       </span>
@@ -74,6 +74,10 @@ const isMarkdown = computed(
   a {
     color: var(--color-blue-700);
     text-decoration: underline;
+  }
+
+  a:hover {
+    color: var(--color-blue-600);
   }
 }
 

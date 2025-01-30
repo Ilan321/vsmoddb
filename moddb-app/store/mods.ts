@@ -29,34 +29,59 @@ const useModsStore = defineStore('mods', {
         return;
       }
 
-      await this.fetchModsAsync();
+      await this.fetchModsAsync({
+        initial: true
+      });
     },
-    async fetchModsAsync() {
+    async fetchModsAsync(options?: { reset?: boolean; initial?: boolean }) {
       this.loading.value = true;
 
       const loadId = getLoadToken();
       this.loading.id = loadId;
 
       try {
-        const response = await useFetch<GetModsResponse>('/api/v1/mods', {
+        const requestOptions = {
           query: {
             sort: this.sort.type,
             direction: this.sort.direction,
-            skip: this.mods.length,
+            skip: options?.reset ? 0 : this.mods.length,
             take: this.pageSize
           }
-        });
+        };
+
+        let response: GetModsResponse | null | undefined;
+
+        if (options?.initial) {
+          const fetchResponse = await useFetch<GetModsResponse>(
+            '/api/v1/mods',
+            requestOptions
+          );
+
+          if (fetchResponse.error.value) {
+            throw fetchResponse.error;
+          }
+
+          response = fetchResponse.data.value;
+        } else {
+          response = await $fetch('/api/v1/mods', requestOptions);
+        }
 
         if (!checkLoadToken(this.loading.id, loadId)) {
           return;
         }
 
-        if (!response.data.value) {
+        if (!response) {
           return;
         }
 
-        this.totalMods = response.data.value.totalMods;
-        this.mods = [...this.mods, ...response.data.value.mods];
+        this.totalMods = response.totalMods;
+        if (options?.reset) {
+          this.mods = response.mods;
+        } else {
+          this.mods = [...this.mods, ...response.mods];
+        }
+      } catch (error) {
+        console.error(error);
       } finally {
         if (checkLoadToken(this.loading.id, loadId)) {
           this.loading.value = false;

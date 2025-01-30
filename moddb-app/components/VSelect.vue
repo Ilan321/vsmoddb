@@ -1,34 +1,75 @@
 <script setup lang="ts">
-defineProps<{
-  label?: string;
-  items: string[];
+import { Menu, MenuButton, MenuItem, MenuItems } from '@headlessui/vue';
+
+const props = defineProps<{
+  items: { text: string; value: string }[];
   modelValue?: string;
 }>();
+
+const emit = defineEmits<{
+  (e: 'update:model-value', value?: string): void;
+}>();
+
+const selectedItem = computed(() =>
+  props.modelValue
+    ? props.items.find((f) => f.value === props.modelValue)
+    : undefined
+);
 </script>
 
 <template>
-  <div class="block text-sm/6 font-medium text-gray-900">
-    <label v-if="label" for="location" class="v-select__label">{{
-      label
-    }}</label>
-    <div class="mt-2 grid grid-cols-1">
-      <select
-        id="location"
-        name="location"
-        class="col-start-1 row-start-1 w-full appearance-none rounded-md bg-white py-1.5 pl-3 pr-8 text-base text-gray-900 outline outline-1 -outline-offset-1 outline-gray-300 focus:outline focus:outline-2 focus:-outline-offset-2 focus:outline-primary sm:text-sm/6"
-      >
-        <option
-          v-for="item of items"
-          :key="item"
-          :selected="modelValue === item"
+  <Menu as="div" class="relative inline-block text-left">
+    <div>
+      <slot name="trigger">
+        <MenuButton
+          class="inline-flex w-full justify-center gap-x-1.5 rounded-md bg-white px-3 py-2
+            text-sm text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50"
         >
-          {{ item }}
-        </option>
-      </select>
-      <font-awesome
-        icon="chevron-down"
-        class="pointer-events-none col-start-1 row-start-1 mr-2 size-5 sm:size-4 self-center justify-self-end text-gray-500"
-      />
+          <span class="grow">
+            {{ selectedItem?.text }}
+          </span>
+          <font-awesome
+            icon="chevron-down"
+            class="-mr-1 size-5 pt-0.5 text-gray-400"
+            aria-hidden="true"
+          />
+        </MenuButton>
+      </slot>
     </div>
-  </div>
+    <transition
+      enter-active-class="transition ease-out duration-100"
+      enter-from-class="transform opacity-0 scale-95"
+      enter-to-class="transform opacity-100 scale-100"
+      leave-active-class="transition ease-in duration-75"
+      leave-from-class="transform opacity-100 scale-100"
+      leave-to-class="transform opacity-0 scale-95"
+    >
+      <slot name="dropdown">
+        <MenuItems
+          class="absolute right-0 z-10 mt-2 w-56 origin-top-right rounded-md bg-white shadow-lg
+            ring-1 ring-black/5 focus:outline-none"
+        >
+          <div class="py-1">
+            <MenuItem
+              v-for="item of items"
+              :key="item.value"
+              v-slot="{ active }"
+            >
+              <a
+                :class="[
+                  active
+                    ? 'bg-gray-100 text-gray-900 outline-none'
+                    : 'text-gray-700',
+                  'block px-4 py-2 text-sm'
+                ]"
+                @click="emit('update:model-value', item.value)"
+              >
+                {{ item.text }}
+              </a>
+            </MenuItem>
+          </div>
+        </MenuItems>
+      </slot>
+    </transition>
+  </Menu>
 </template>

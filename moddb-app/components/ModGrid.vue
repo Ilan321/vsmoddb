@@ -9,6 +9,7 @@ defineProps<{
 <template>
   <div class="mod-grid">
     <mod-card v-for="mod of mods" :key="mod.id" :mod="mod" />
+    <slot name="append"></slot>
   </div>
 </template>
 
