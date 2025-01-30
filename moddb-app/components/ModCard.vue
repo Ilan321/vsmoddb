@@ -38,22 +38,23 @@ const bannerUrl = computed(() => `/api/v1/mods/${props.mod.id}/banner`);
         </NuxtLink>
       </div>
       <div class="mod-card__stats">
-        <div
-          class="mod-card__downloads px-1 rounded transition-colors hover:bg-black/20"
-        >
-          <NuxtLink :to="`${url}/downloads`">
+        <NuxtLink :to="`${url}/files`">
+          <div
+            class="mod-card__downloads px-1 rounded transition-colors hover:bg-black/20"
+          >
             <font-awesome icon="download" />
             {{ props.mod.downloads }}
-          </NuxtLink>
-        </div>
-        <div
-          class="mod-card__comments px-1 rounded transition-colors hover:bg-black/20"
-        >
-          <NuxtLink :to="`${url}#comments`">
+          </div>
+        </NuxtLink>
+
+        <NuxtLink :to="`${url}#comments`">
+          <div
+            class="mod-card__comments px-1 rounded transition-colors hover:bg-black/20"
+          >
             <font-awesome icon="comments" />
             {{ props.mod.comments }}
-          </NuxtLink>
-        </div>
+          </div>
+        </NuxtLink>
       </div>
     </div>
   </div>

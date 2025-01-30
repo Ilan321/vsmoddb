@@ -57,7 +57,7 @@ const comments = useFetch<ModCommentModel[]>(
       <tab :to="`/mods/${modAlias}/files`"> Files </tab>
     </div>
     <NuxtPage />
-    <div class="mod-page__comments">
+    <div class="mod-page__comments" id="comments">
       <div class="mod-page__comments-header">
         <h3 v-if="comments.status.value === 'pending'">Loading comments..</h3>
         <template v-else>

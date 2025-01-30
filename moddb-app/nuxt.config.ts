@@ -5,7 +5,7 @@ export default defineNuxtConfig({
   compatibilityDate: '2024-11-01',
   devtools: { enabled: true },
   modules: ['@pinia/nuxt', '@vesp/nuxt-fontawesome', '@nuxtjs/mdc'],
-  css: ['~/assets/main.css'],
+  css: ['~/main.css'],
   app: {
     head: {
       link: [
