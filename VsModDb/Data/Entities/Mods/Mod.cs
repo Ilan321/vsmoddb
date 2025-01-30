@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using VsModDb.Data.Entities.Assets;
 using VsModDb.Extensions;
 
-namespace VsModDb.Data.Entities;
+namespace VsModDb.Data.Entities.Mods;
 
 public class Mod : BaseEntity
 {
@@ -47,6 +47,11 @@ public class Mod : BaseEntity
     /// </summary>
     public Asset? Banner { get; set; }
     public int? BannerId { get; set; }
+
+    /// <summary>
+    /// List of comments for the mod.
+    /// </summary>
+    public List<ModComment> Comments { get; set; } = default!;
 
     public class Configuration : IEntityTypeConfiguration<Mod>
     {

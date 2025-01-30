@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using VsModDb.Data;
 
@@ -11,9 +12,11 @@ using VsModDb.Data;
 namespace VsModDb.Data.Migrations
 {
     [DbContext(typeof(ModDbContext))]
-    partial class ModDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250130064802_ModComments")]
+    partial class ModComments
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -251,13 +254,6 @@ namespace VsModDb.Data.Migrations
                         .IsRequired()
                         .HasMaxLength(-1)
                         .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("ContentType")
-                        .IsRequired()
-                        .ValueGeneratedOnAdd()
-                        .HasMaxLength(64)
-                        .HasColumnType("nvarchar(64)")
-                        .HasDefaultValue("Html");
 
                     b.Property<int>("LinkedModId")
                         .HasColumnType("int");

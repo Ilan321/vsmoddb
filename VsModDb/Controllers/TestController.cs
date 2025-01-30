@@ -6,7 +6,9 @@ using Microsoft.AspNetCore.Mvc;
 using VsModDb.Data;
 using VsModDb.Data.Entities;
 using VsModDb.Data.Entities.Assets;
+using VsModDb.Data.Entities.Mods;
 using VsModDb.Models.Assets;
+using VsModDb.Models.Mods;
 using VsModDb.Services.Storage.Providers;
 
 namespace VsModDb.Controllers;
@@ -62,14 +64,16 @@ public class TestController(
     [HttpPost("fetch-mods")]
     public async Task FetchMods([FromQuery] int count, CancellationToken cancellationToken)
     {
+        var apiSerializerOptions = new JsonSerializerOptions()
+        {
+            PropertyNameCaseInsensitive = true
+        };
+
         using var modsHttpResponse = await httpClient.GetAsync("https://mods.vintagestory.at/api/mods", cancellationToken);
 
         modsHttpResponse.EnsureSuccessStatusCode();
 
-        var modsResponse = await modsHttpResponse.Content.ReadFromJsonAsync<FetchedModsResponse>(new JsonSerializerOptions()
-        {
-            PropertyNameCaseInsensitive = true
-        }, cancellationToken: cancellationToken);
+        var modsResponse = await modsHttpResponse.Content.ReadFromJsonAsync<FetchedModsResponse>(apiSerializerOptions, cancellationToken: cancellationToken);
 
         var mods = modsResponse.Mods.OrderByDescending(f => f.ModId)
             .Take(count)
@@ -87,7 +91,8 @@ public class TestController(
                 {
                     Value = tag
                 }).ToList(),
-                UrlAlias = fetchedMod.UrlAlias
+                UrlAlias = fetchedMod.UrlAlias,
+                Comments = new()
             };
 
             context.Mods.Add(mod);
@@ -115,7 +120,74 @@ public class TestController(
 
                 await context.SaveChangesAsync(cancellationToken);
             }
+
+            using var commentsResponse = await httpClient.GetAsync($"https://mods.vintagestory.at/api/comments/{fetchedMod.AssetId}", cancellationToken);
+
+            var comments =
+                await commentsResponse.Content.ReadFromJsonAsync<FetchedModCommentsResponse>(apiSerializerOptions,
+                    cancellationToken);
+
+            foreach (var fetchedComment in comments.Comments)
+            {
+                var userName = await GetOrCreateUserAsync(fetchedComment.UserId);
+
+                if (string.IsNullOrWhiteSpace(userName))
+                {
+                    continue;
+                }
+
+                mod.Comments.Add(new()
+                {
+                    Comment = fetchedComment.Text,
+                    TimeCreatedUtc = fetchedComment.CreatedDateTime,
+                    TimeUpdatedUtc = fetchedComment.LastModifiedDateTime,
+                    LinkedUserId = userName,
+                    ContentType = ModCommentContentType.Html
+                });
+            }
+
+            await context.SaveChangesAsync(cancellationToken);
         }
+    }
+
+    private Dictionary<int, string> _authorCache = new();
+
+    private async Task<string?> GetOrCreateUserAsync(int apiUserId)
+    {
+        if (!_authorCache.Any())
+        {
+            using var authorsResponse = await httpClient.GetAsync("https://mods.vintagestory.at/api/authors");
+
+            var authors = await authorsResponse.Content.ReadFromJsonAsync<FetchAuthorsResponse>();
+
+            _authorCache = authors.Authors.ToDictionary(f => f.UserId, f => f.Name);
+        }
+
+        var userName = _authorCache.GetValueOrDefault(apiUserId);
+
+        if (string.IsNullOrWhiteSpace(userName))
+        {
+            return null;
+        }
+
+        var user = await userManager.FindByNameAsync(userName);
+
+        if (user is null)
+        {
+            user = new User
+            {
+                UserName = userName
+            };
+
+            var result = await userManager.CreateAsync(user);
+
+            if (!result.Succeeded)
+            {
+                throw new InvalidOperationException($"Unable to create user {userName}: {result}");
+            }
+        }
+
+        return user.Id;
     }
 }
 
@@ -134,6 +206,7 @@ public class FetchedModsResponse
 public class FetchedMod
 {
     public int ModId { get; set; }
+    public int AssetId { get; set; }
     public string Name { get; set; }
     public string Author { get; set; }
     public List<string> Tags { get; set; }
@@ -142,6 +215,35 @@ public class FetchedMod
     public DateTime LastReleasedDateTime => DateTime.ParseExact(LastReleased, "yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture);
     public string UrlAlias { get; set; }
     public string? Logo { get; set; }
+}
+
+public class FetchedModCommentsResponse
+{
+    public string StatusCode { get; set; }
+    public List<FetchedModComment> Comments { get; set; }
+}
+
+public class FetchedModComment
+{
+    public int CommentId { get; set; }
+    public string Text { get; set; }
+    public int UserId { get; set; }
+    public string Created { get; set; }
+    public DateTime CreatedDateTime => DateTime.ParseExact(Created, "yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture);
+    public string LastModified { get; set; }
+    public DateTime LastModifiedDateTime => DateTime.ParseExact(LastModified, "yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture);
+}
+
+public class FetchAuthorsResponse
+{
+    public string StatusCode { get; set; }
+    public List<FetchedAuthor> Authors { get; set; }
+}
+
+public class FetchedAuthor
+{
+    public int UserId { get; set; }
+    public string Name { get; set; }
 }
 
 #endif

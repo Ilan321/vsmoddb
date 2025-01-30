@@ -22,10 +22,7 @@ builder.Host.UseSerilog();
 
 builder.Services.AddDbContextPool<ModDbContext>(c => c.UseSqlServer(builder.Configuration.GetConnectionString("db")));
 
-builder.Services.AddIdentity<User, IdentityRole>(c =>
-    {
-        c.User.RequireUniqueEmail = true;
-    })
+builder.Services.AddIdentity<User, IdentityRole>()
     .AddEntityFrameworkStores<ModDbContext>()
     .AddDefaultTokenProviders();
 

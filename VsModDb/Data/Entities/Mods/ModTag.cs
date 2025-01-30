@@ -2,7 +2,7 @@
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using VsModDb.Extensions;
 
-namespace VsModDb.Data.Entities;
+namespace VsModDb.Data.Entities.Mods;
 
 public class ModTag : BaseEntity
 {

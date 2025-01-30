@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using VsModDb.Data;
 
@@ -11,9 +12,11 @@ using VsModDb.Data;
 namespace VsModDb.Data.Migrations
 {
     [DbContext(typeof(ModDbContext))]
-    partial class ModDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250130070528_ModComments_ContentType")]
+    partial class ModComments_ContentType
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
