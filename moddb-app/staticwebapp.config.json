@@ -9,8 +9,8 @@
       "rewrite": "/api/server"
     },
     {
-      "route": "/api/{*all}",
-      "rewrite": "https://vsmoddb-api-c6a6c4dwd8aydwdu.westeurope-01.azurewebsites.net/api/{all}"
+      "route": "/api/{*rest}",
+      "rewrite": "https://vsmoddb-api-c6a6c4dwd8aydwdu.westeurope-01.azurewebsites.net/api/{rest}"
     }
   ],
   "platform": {
