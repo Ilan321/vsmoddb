@@ -26,7 +26,13 @@ export default defineNuxtConfig({
   },
   fontawesome: {
     icons: {
-      solid: ['download', 'comments', 'spinner', 'circle-exclamation']
+      solid: [
+        'download',
+        'comments',
+        'spinner',
+        'circle-exclamation',
+        'chevron-down'
+      ]
     }
   },
   mdc: {

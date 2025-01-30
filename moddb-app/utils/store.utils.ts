@@ -1,6 +1,6 @@
-import type { StateTree, Store } from 'pinia';
+import type { StateTree } from 'pinia';
 
-async function waitForStoreAsync<TState extends StateTree>(
+export async function waitForStoreAsync<TState extends StateTree>(
   store: TState,
   selector: (store: TState) => any
 ) {
@@ -19,6 +19,10 @@ async function waitForStoreAsync<TState extends StateTree>(
   });
 }
 
-export default {
-  waitForStoreAsync
-};
+export function getLoadToken() {
+  return Math.random().toString();
+}
+
+export function checkLoadToken(a?: string, b?: string) {
+  return a === b;
+}
