@@ -87,5 +87,56 @@ function handleClick(element: HTMLElement) {
       @apply block;
     }
   }
+
+  h1 {
+    font-size: var(--text-2xl);
+  }
+  h2 {
+    font-size: var(--text-xl);
+  }
+  h3 {
+    font-size: var(--text-lg);
+  }
+  h4 {
+    font-size: var(--text-base);
+  }
+  h5 {
+    font-size: var(--text-sm);
+  }
+  h6 {
+    font-size: var(--text-xs);
+  }
+
+  li {
+    @apply list-disc;
+    @apply ms-8;
+  }
+
+  table {
+    @apply w-full;
+    @apply table-auto;
+    @apply border-collapse;
+    @apply border border-gray-300;
+
+    thead {
+      @apply bg-gray-200;
+
+      tr {
+        th {
+          @apply text-start;
+          @apply px-2 py-1;
+        }
+      }
+    }
+
+    tbody {
+      tr {
+        td {
+          @apply border border-gray-300;
+          @apply px-2 py-1;
+        }
+      }
+    }
+  }
 }
 </style>
