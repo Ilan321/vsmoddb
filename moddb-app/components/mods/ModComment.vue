@@ -1,10 +1,17 @@
 <script setup lang="ts">
 import dayjs from 'dayjs';
 import type { ModCommentModel } from '~/models/mods/ModCommentModel';
+import type { ModDisplayModel } from '~/models/mods/ModDisplayModel';
 
-const props = defineProps<{
-  comment: ModCommentModel;
-}>();
+const props = withDefaults(
+  defineProps<{
+    comment: ModCommentModel;
+    mod?: ModDisplayModel;
+  }>(),
+  {
+    mod: undefined
+  }
+);
 
 const timeCreatedRelative = computed(() =>
   dayjs(props.comment.timeCreatedUtc).fromNow()
@@ -15,8 +22,15 @@ const timeCreatedRelative = computed(() =>
   <div class="mod-comment w-full border border-gray-400 rounded bg-primary">
     <div class="mod-comment__title">
       💬
-      {{ props.comment.author }},
-      {{ timeCreatedRelative }}
+      {{ props.comment.author }}, {{ timeCreatedRelative }},
+      <span v-if="props.mod" class="text-xs text-gray-600">
+        in
+        <NuxtLink
+          :to="`/mods/${props.mod.urlAlias || props.mod.id}`"
+          class="underline"
+          >{{ props.mod.name }}</NuxtLink
+        >
+      </span>
     </div>
     <div class="mod-comment__body bg-secondary px-2 py-1">
       <div v-html="props.comment.comment"></div>

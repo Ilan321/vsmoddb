@@ -1,10 +1,15 @@
 <script setup lang="ts">
+import type { LatestModCommentModel } from '~/models/mods/LatestModCommentModel';
 import type { ModDisplayModel } from '~/models/mods/ModDisplayModel';
+import ModComment from '~/components/mods/ModComment.vue';
 import useAuthStore from '~/store/auth';
 
 const auth = useAuthStore();
 
 const latestMods = useFetch<ModDisplayModel[]>('/api/v1/mods/latest');
+const latestModComments = useFetch<LatestModCommentModel[]>(
+  '/api/v1/mods/latest/comments'
+);
 </script>
 
 <template>
@@ -30,9 +35,18 @@ const latestMods = useFetch<ModDisplayModel[]>('/api/v1/mods/latest');
     </div>
     <div v-if="latestMods.data.value" class="flex flex-row flex-wrap gap-2">
       <mod-card v-for="mod of latestMods.data.value" :key="mod.id" :mod="mod" />
-      <!-- <div v-for="mod of latestMods.data.value" :key="mod.name">
-        {{ mod.name }}
-      </div> -->
+    </div>
+    <div class="flex justify-start gap-2 align-center mt-4 mb-2">
+      <h2 class="text-xl">Latest 20 comments</h2>
+      <spinner v-if="latestModComments.status.value === 'pending'" />
+    </div>
+    <div v-if="latestModComments.data.value" class="flex flex-col gap-2">
+      <mod-comment
+        v-for="comment of latestModComments.data.value"
+        :key="comment.comment.id"
+        :comment="comment.comment"
+        :mod="comment.mod"
+      />
     </div>
   </div>
 </template>
