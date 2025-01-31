@@ -34,7 +34,8 @@ useTitle(
       :items="[
         {
           name: 'Mods',
-          url: '/mods'
+          url: '/mods',
+          hideOnMobile: true
         },
         {
           name: pageName
