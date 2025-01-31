@@ -8,8 +8,8 @@ on:
     branches:
       - master
     paths:
-      - /VsModDb/*
-      - /VsModDb.sln
+      - VsModDb/**
+      - VsModDb.sln
   workflow_dispatch:
 
 jobs:
