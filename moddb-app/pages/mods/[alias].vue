@@ -15,6 +15,16 @@ const pageName = computed(() => {
 });
 
 store.initAsync(route.params.alias as string);
+
+useTitle(
+  computed(() => {
+    if (store.loading.value) {
+      return store.alias;
+    }
+
+    return store.mod.name!;
+  })
+);
 </script>
 
 <template>

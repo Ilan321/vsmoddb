@@ -8,6 +8,8 @@ const userName = route.params.user.toString();
 const store = useUserProfileStore();
 
 store.initAsync(userName);
+
+useTitle(`${userName}'s mods`);
 </script>
 
 <template>

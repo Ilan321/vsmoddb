@@ -42,6 +42,8 @@ const sortDirectionItems = [
 ];
 
 store.initAsync();
+
+useTitle('Mods');
 </script>
 
 <template>
