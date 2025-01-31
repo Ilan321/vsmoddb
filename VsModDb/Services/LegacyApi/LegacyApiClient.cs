@@ -1,6 +1,7 @@
 ﻿using System.Resources;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using Microsoft.AspNetCore.Routing.Constraints;
 using Microsoft.Extensions.Caching.Memory;
 using VsModDb.Extensions;
 using VsModDb.Json;
@@ -253,7 +254,7 @@ public class LegacyApiClient(
 
         if (!string.IsNullOrWhiteSpace(author))
         {
-            query = query.Where(f => f.Author.Contains(author, StringComparison.OrdinalIgnoreCase));
+            query = query.Where(f => string.Equals(f.Author, author, StringComparison.OrdinalIgnoreCase));
         }
 
         if (direction == ModSortDirection.Ascending)
@@ -449,7 +450,14 @@ public class LegacyApiClient(
             return cachedMod;
         }
 
-        var httpResponse = await httpClient.GetAsync($"api/mod/{alias}", cancellationToken);
+        var modId = await GetModIdAsync(alias, cancellationToken);
+
+        if (modId is null)
+        {
+            return null;
+        }
+
+        var httpResponse = await httpClient.GetAsync($"api/mod/{modId}", cancellationToken);
 
         httpResponse.EnsureSuccessStatusCode();
 
@@ -471,6 +479,32 @@ public class LegacyApiClient(
         memoryCache.Set(cacheKey, modDetails, TimeSpan.FromMinutes(5));
 
         return modDetails;
+    }
+
+    private async Task<int?> GetModIdAsync(string alias, CancellationToken cancellationToken)
+    {
+        var mods = await GetModsAsync(cancellationToken);
+
+        var cacheKey = $"legacy.alias-to-id.{alias}";
+
+        if (!memoryCache.TryGetValue<int?>(cacheKey, out var id) || !id.HasValue)
+        {
+            if (!int.TryParse(alias, out var parsedId))
+            {
+                var modDetails = mods.FirstOrDefault(f => f.UrlAlias == alias);
+
+                id = modDetails?.ModId;
+            }
+
+            var mod = mods.FirstOrDefault(f => f.ModId == parsedId);
+
+            if (mod is not null)
+            {
+                id = mod.ModId;
+            }
+        }
+
+        return id;
     }
 
     private static ModDisplayDto ToModDisplayDto(LegacyMod f) => new()
