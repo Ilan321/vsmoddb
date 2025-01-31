@@ -54,7 +54,8 @@ export default defineNuxtConfig({
         'comments',
         'spinner',
         'circle-exclamation',
-        'chevron-down'
+        'chevron-down',
+        'clock'
       ]
     }
   },

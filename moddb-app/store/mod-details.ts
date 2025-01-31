@@ -2,6 +2,7 @@ import type { ModDetailsModel } from '~/models/mods/ModDetailsModel';
 import type { TagModel } from '~/models/TagModel';
 import { ModSideFilter } from './mods';
 import type { ModCommentModel } from '~/models/mods/ModCommentModel';
+import type { ModRelease } from '~/models/mods/ModRelease';
 
 function getState() {
   return {
@@ -20,7 +21,8 @@ function getState() {
       side: undefined as string | undefined,
       timeCreatedUtc: undefined as string | undefined,
       timeUpdatedUtc: undefined as string | undefined,
-      downloads: 0
+      downloads: 0,
+      releases: [] as ModRelease[]
     },
     comments: {
       loading: {
@@ -73,6 +75,7 @@ const useModDetailsStore = defineStore('mod-details', {
         this.mod.timeCreatedUtc = mod.timeCreatedUtc;
         this.mod.timeUpdatedUtc = mod.timeUpdatedUtc;
         this.mod.downloads = mod.downloads;
+        this.mod.releases = mod.releases;
       } finally {
         if (checkLoadToken(this.loading.id, loadId)) this.loading.value = false;
       }

@@ -42,6 +42,10 @@ function handleClick(element: HTMLElement) {
 @reference "@/main.css";
 
 .v-comment-renderer {
+  * {
+    @apply max-w-full;
+  }
+
   p {
     @apply not-last:mb-2;
   }
@@ -75,6 +79,7 @@ function handleClick(element: HTMLElement) {
 
     .spoiler-text {
       @apply hidden;
+      @apply overflow-x-auto;
     }
   }
 

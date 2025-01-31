@@ -58,7 +58,7 @@ const isMarkdown = computed(
       </span>
     </div>
     <div
-      class="mod-comment__body bg-secondary px-2 py-1 overflow-y-auto"
+      class="mod-comment__body bg-secondary px-2 py-1 overflow-y-auto overflow-x-auto"
       :class="{
         'max-h-32': props.short,
         'max-h-96': !props.short

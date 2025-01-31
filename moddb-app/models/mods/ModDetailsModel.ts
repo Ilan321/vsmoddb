@@ -1,4 +1,5 @@
 import type { TagModel } from '../TagModel';
+import type { ModRelease } from './ModRelease';
 
 export interface ModDetailsModel {
   id: number;
@@ -12,4 +13,5 @@ export interface ModDetailsModel {
   author: string;
   side: string;
   downloads: number;
+  releases: ModRelease[];
 }
