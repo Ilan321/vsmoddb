@@ -62,9 +62,7 @@ store.initAsync();
         @update:model-value="console.log"
       />
     </div>
-    <h3
-      class="mb-2 pb-2 flex flex-row items-baseline gap-1 border-b border-primary"
-    >
+    <h3 class="mb-2 pb-2 flex flex-col md:flex-row items-baseline gap-1">
       Showing {{ store.mods.length }} out of {{ store.totalMods }}, sorted by
       <div class="flex flex-row gap-2">
         <v-select
