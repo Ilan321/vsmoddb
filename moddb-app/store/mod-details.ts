@@ -3,6 +3,7 @@ import type { TagModel } from '~/models/TagModel';
 import { ModSideFilter } from './mods';
 import type { ModCommentModel } from '~/models/mods/ModCommentModel';
 import type { ModRelease } from '~/models/mods/ModRelease';
+import type { GetModCommentsResponse } from '~/models/responses/mods/GetModCommentsResponse';
 
 function getState() {
   return {
@@ -29,7 +30,8 @@ function getState() {
         value: false,
         id: undefined as string | undefined
       },
-      value: [] as ModCommentModel[]
+      value: [] as ModCommentModel[],
+      total: 0
     }
   };
 }
@@ -53,7 +55,9 @@ const useModDetailsStore = defineStore('mod-details', {
       try {
         // Fetch mod details
 
-        this.refreshComments();
+        this.loadComments({
+          reset: true
+        });
 
         const response = await useFetch<ModDetailsModel>(
           '/api/v1/mods/' + this.alias
@@ -80,22 +84,34 @@ const useModDetailsStore = defineStore('mod-details', {
         if (checkLoadToken(this.loading.id, loadId)) this.loading.value = false;
       }
     },
-    async refreshComments() {
+    async loadComments(options?: { reset?: boolean }) {
       this.comments.loading.value = true;
+
+      if (options?.reset) {
+        this.comments.value = [];
+      }
 
       const loadId = getLoadToken();
       this.comments.loading.id = loadId;
 
       try {
-        const response = await useFetch<ModCommentModel[]>(
-          `/api/v1/mods/${this.alias}/comments`
+        const response = await useFetch<GetModCommentsResponse>(
+          `/api/v1/mods/${this.alias}/comments`,
+          {
+            query: {
+              skip: options?.reset ? 0 : this.comments.value.length
+            }
+          }
         );
 
         if (!checkLoadToken(this.comments.loading.id, loadId)) {
           return;
         }
 
-        this.comments.value = response.data.value!;
+        this.comments.total = response.data.value!.totalComments;
+        this.comments.value = options?.reset
+          ? response.data.value!.comments
+          : [...this.comments.value, ...response.data.value!.comments];
       } finally {
         if (checkLoadToken(this.comments.loading.id, loadId))
           this.comments.loading.value = false;

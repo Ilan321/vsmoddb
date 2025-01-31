@@ -51,22 +51,31 @@ useTitle(
     <NuxtPage v-if="!store.loading.value" />
     <div class="mod-page__comments" id="comments">
       <div class="mod-page__comments-header">
-        <h3 v-if="store.comments.loading.value">Loading comments..</h3>
-        <template v-else>
-          <h3 class="text-lg mb-2">
-            {{ store.comments.value.length }} comments
-          </h3>
-          <div
-            class="mod-page__comments-container flex flex-col justify-start items-start gap-2"
-          >
-            <mod-comment
-              v-for="comment of store.comments.value"
-              :key="comment.id"
-              :comment="comment"
-              :author="comment.author === store.mod.author"
-            />
+        <h3 class="text-lg mb-2">
+          {{ store.comments.value.length }} comments
+          <span class="text-sm">(out of {{ store.comments.total }}) </span>
+        </h3>
+        <div
+          class="mod-page__comments-container flex flex-col justify-start items-start gap-2"
+        >
+          <mod-comment
+            v-for="comment of store.comments.value"
+            :key="comment.id"
+            :comment="comment"
+            :author="comment.author === store.mod.author"
+          />
+          <div class="w-full flex justify-center">
+            <v-button
+              v-if="store.comments.total > store.comments.value.length"
+              @click="store.loadComments"
+              :loading="store.comments.loading.value"
+              :disabled="store.comments.loading.value"
+              class="mt-2"
+            >
+              Load more
+            </v-button>
           </div>
-        </template>
+        </div>
       </div>
     </div>
   </div>
