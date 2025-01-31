@@ -51,10 +51,11 @@ const useModDetailsStore = defineStore('mod-details', {
       try {
         // Fetch mod details
 
-        const [_, response] = await Promise.all([
-          this.refreshComments(),
-          useFetch<ModDetailsModel>('/api/v1/mods/' + this.alias)
-        ]);
+        this.refreshComments();
+
+        const response = await useFetch<ModDetailsModel>(
+          '/api/v1/mods/' + this.alias
+        );
 
         if (!checkLoadToken(this.loading.id, loadId)) {
           return;
