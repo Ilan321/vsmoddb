@@ -28,6 +28,8 @@ public interface ILegacyApiClient
         string? author,
         CancellationToken cancellationToken = default
     );
+
+    Task<List<ModDisplayDto>> GetModsByAuthorAsync(string author, CancellationToken cancellationToken = default);
 }
 
 public class LegacyApiClient(
@@ -254,17 +256,18 @@ public class LegacyApiClient(
 
         if (!string.IsNullOrWhiteSpace(author))
         {
-            query = query.Where(f => string.Equals(f.Author, author, StringComparison.OrdinalIgnoreCase));
+            query = query.Where(f => f.Author.Contains(author, StringComparison.OrdinalIgnoreCase));
         }
 
         if (direction == ModSortDirection.Ascending)
         {
             query = sort switch
             {
-                ModSortType.Created => query.OrderBy(f => f.LastReleased), // TODO: fix this
+                ModSortType.Created => query.OrderBy(f => f.ModId), // TODO: fix this
                 ModSortType.Downloads => query.OrderBy(f => f.Downloads),
                 ModSortType.Comments => query.OrderBy(f => f.Comments),
                 ModSortType.Trending => query.OrderBy(f => f.TrendingPoints),
+                ModSortType.Updated => query.OrderBy(f => f.LastReleased),
                 ModSortType.Name or _ => query.OrderBy(f => f.Name)
             };
         }
@@ -272,10 +275,11 @@ public class LegacyApiClient(
         {
             query = sort switch
             {
-                ModSortType.Created => query.OrderByDescending(f => f.LastReleased), // TODO: fix this
+                ModSortType.Created => query.OrderByDescending(f => f.ModId), // TODO: fix this
                 ModSortType.Downloads => query.OrderByDescending(f => f.Downloads),
                 ModSortType.Comments => query.OrderByDescending(f => f.Comments),
                 ModSortType.Trending => query.OrderByDescending(f => f.TrendingPoints),
+                ModSortType.Updated => query.OrderByDescending(f => f.LastReleased),
                 ModSortType.Name or _ => query.OrderByDescending(f => f.Name)
             };
         }
@@ -290,6 +294,28 @@ public class LegacyApiClient(
             TotalMods = allMods.Count,
             Mods = mods
         };
+    }
+
+    public async Task<List<ModDisplayDto>> GetModsByAuthorAsync(string author, CancellationToken cancellationToken = default)
+    {
+        var cacheKey = $"legacy.mods.by-author";
+
+        if (!memoryCache.TryGetValue<List<ModDisplayDto>>(cacheKey, out var authorMods) || authorMods is null)
+        {
+            log.LogDebug("Fetching mods by author {author} from legacy api", author);
+
+            var allMods = await GetModsAsync(cancellationToken);
+
+            authorMods = allMods
+                .Where(f => string.Equals(f.Author, author, StringComparison.OrdinalIgnoreCase))
+                .OrderByDescending(f => f.ModId)
+                .Select(ToModDisplayDto)
+                .ToList();
+
+            memoryCache.Set(cacheKey, authorMods, TimeSpan.FromMinutes(5));
+        }
+
+        return authorMods;
     }
 
     private async Task<LegacyModDetails?> GetModByAssetIdInternalAsync(
