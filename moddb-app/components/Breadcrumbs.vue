@@ -1,6 +1,6 @@
 <script setup lang="ts">
 const props = defineProps<{
-  items: { name: string; url?: string }[];
+  items: { name: string; url?: string; hideOnMobile?: boolean }[];
 }>();
 </script>
 
@@ -10,6 +10,7 @@ const props = defineProps<{
       v-for="(item, index) of props.items"
       :key="item.name"
       class="breadcrumbs__item"
+      :class="[item.hideOnMobile ? 'hidden md:block' : '']"
     >
       <NuxtLink v-if="item.url" :to="item.url" class="me-2 underline">
         {{ item.name }}

@@ -2,6 +2,8 @@ import type { ModDetailsModel } from '~/models/mods/ModDetailsModel';
 import type { TagModel } from '~/models/TagModel';
 import { ModSideFilter } from './mods';
 import type { ModCommentModel } from '~/models/mods/ModCommentModel';
+import type { ModRelease } from '~/models/mods/ModRelease';
+import type { GetModCommentsResponse } from '~/models/responses/mods/GetModCommentsResponse';
 
 function getState() {
   return {
@@ -20,14 +22,16 @@ function getState() {
       side: undefined as string | undefined,
       timeCreatedUtc: undefined as string | undefined,
       timeUpdatedUtc: undefined as string | undefined,
-      downloads: 0
+      downloads: 0,
+      releases: [] as ModRelease[]
     },
     comments: {
       loading: {
         value: false,
         id: undefined as string | undefined
       },
-      value: [] as ModCommentModel[]
+      value: [] as ModCommentModel[],
+      total: 0
     }
   };
 }
@@ -51,7 +55,9 @@ const useModDetailsStore = defineStore('mod-details', {
       try {
         // Fetch mod details
 
-        this.refreshComments();
+        this.loadComments({
+          reset: true
+        });
 
         const response = await useFetch<ModDetailsModel>(
           '/api/v1/mods/' + this.alias
@@ -73,26 +79,39 @@ const useModDetailsStore = defineStore('mod-details', {
         this.mod.timeCreatedUtc = mod.timeCreatedUtc;
         this.mod.timeUpdatedUtc = mod.timeUpdatedUtc;
         this.mod.downloads = mod.downloads;
+        this.mod.releases = mod.releases;
       } finally {
         if (checkLoadToken(this.loading.id, loadId)) this.loading.value = false;
       }
     },
-    async refreshComments() {
+    async loadComments(options?: { reset?: boolean }) {
       this.comments.loading.value = true;
+
+      if (options?.reset) {
+        this.comments.value = [];
+      }
 
       const loadId = getLoadToken();
       this.comments.loading.id = loadId;
 
       try {
-        const response = await useFetch<ModCommentModel[]>(
-          `/api/v1/mods/${this.alias}/comments`
+        const response = await useFetch<GetModCommentsResponse>(
+          `/api/v1/mods/${this.alias}/comments`,
+          {
+            query: {
+              skip: options?.reset ? 0 : this.comments.value.length
+            }
+          }
         );
 
         if (!checkLoadToken(this.comments.loading.id, loadId)) {
           return;
         }
 
-        this.comments.value = response.data.value!;
+        this.comments.total = response.data.value!.totalComments;
+        this.comments.value = options?.reset
+          ? response.data.value!.comments
+          : [...this.comments.value, ...response.data.value!.comments];
       } finally {
         if (checkLoadToken(this.comments.loading.id, loadId))
           this.comments.loading.value = false;

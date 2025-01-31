@@ -26,6 +26,10 @@ const latestModComments = useFetch<LatestModCommentModel[]>(
         using .NET and Vue.js.
       </p>
       <p>
+        <span class="underline">This site's currently in "read-only" mode</span
+        >, meaning you can't login, submit comments or mods, etc.
+      </p>
+      <p class="mt-2">
         This site's still very much in alpha, so expect bugs and missing
         features.
       </p>
@@ -39,8 +43,10 @@ const latestModComments = useFetch<LatestModCommentModel[]>(
       </p>
       <p class="text-sm mt-2">
         In case it needs to be said: this site is not affiliated with Vintage
-        Story or Anego Studios. If you have any questions or concerns, feel free
-        to
+        Story or Anego Studios.
+      </p>
+      <p class="text-sm">
+        If you have any questions, suggestions, or concerns - feel free to
         <NuxtLink
           to="https://discordapp.com/channels/@me/238803571867385857"
           class="link-blue"
