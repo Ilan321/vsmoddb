@@ -18,8 +18,8 @@ const bannerUrl = computed(() => `/api/v1/mods/${props.mod.id}/banner`);
 
 <template>
   <div
-    class="mod-card flex flex-col grow shadow hover:shadow-xl hover:outline outline-primary
-      transition-all shrink bg-white/60"
+    class="mod-card flex flex-col grow shadow hover:shadow-xl hover:outline transition-all
+      shrink bg-white/60"
     :title="props.mod.name"
   >
     <div class="mod-card__banner">
