@@ -30,21 +30,20 @@ const useUserProfileStore = defineStore('user-profile', {
       try {
         // Fetch mod details
 
-        const response = await useFetch<GetModsResponse>('/api/v1/mods', {
-          query: {
-            sort: ModSortType.CREATED,
-            direction: ModSortDirection.DESC,
-            take: 100,
-            skip: 0,
-            author: this.userName
+        const mods = await useFetch<ModDisplayModel[]>(
+          '/api/v1/mods/by-author',
+          {
+            query: {
+              author: this.userName
+            }
           }
-        });
+        );
 
         if (!checkLoadToken(this.loading.id, loadId)) {
           return;
         }
 
-        this.mods = response.data.value!.mods;
+        this.mods = mods.data.value!;
       } finally {
         if (checkLoadToken(this.loading.id, loadId)) this.loading.value = false;
       }
