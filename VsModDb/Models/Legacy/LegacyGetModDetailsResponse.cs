@@ -29,4 +29,5 @@ public class LegacyModDetails
 
     public required string[] Tags { get; init; }
     public string Side { get; set; }
+    public List<LegacyModRelease> Releases { get; init; }
 }

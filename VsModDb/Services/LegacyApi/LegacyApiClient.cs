@@ -1,10 +1,12 @@
-﻿using System.Resources;
+﻿using System.Net.Mime;
+using System.Resources;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Routing.Constraints;
 using Microsoft.Extensions.Caching.Memory;
 using VsModDb.Extensions;
 using VsModDb.Json;
+using VsModDb.Models.Assets;
 using VsModDb.Models.Legacy;
 using VsModDb.Models.Mods;
 using VsModDb.Models.Responses.Mods;
@@ -30,6 +32,12 @@ public interface ILegacyApiClient
     );
 
     Task<List<ModDisplayDto>> GetModsByAuthorAsync(string author, CancellationToken cancellationToken = default);
+
+    Task<AssetStream?> GetModFileAsync(
+        string alias,
+        string version,
+        CancellationToken cancellationToken = default
+    );
 }
 
 public class LegacyApiClient(
@@ -63,9 +71,25 @@ public class LegacyApiClient(
             Author = legacyMod.Author,
             Side = legacyMod.Side,
             Downloads = legacyMod.Downloads,
-            Follows = legacyMod.Follows
+            Follows = legacyMod.Follows,
+            Releases = ToModReleaseDtos(legacyMod.Releases)
         };
     }
+
+    private List<ModReleaseDto> ToModReleaseDtos(List<LegacyModRelease> legacyModReleases)
+    {
+        return legacyModReleases.Select(ToModReleaseDto).ToList();
+    }
+
+    private ModReleaseDto ToModReleaseDto(LegacyModRelease r) => new()
+    {
+        ModId = r.ModIdStr,
+        ModVersion = r.ModVersion,
+        TimeCreatedUtc = r.Created,
+        Downloads = r.Downloads,
+        FileName = r.FileName,
+        GameVersions = r.Tags
+    };
 
     private async Task<List<ModTagDto>> ToModTagsAsync(string[] tagNames)
     {
@@ -316,6 +340,41 @@ public class LegacyApiClient(
         }
 
         return authorMods;
+    }
+
+    public async Task<AssetStream?> GetModFileAsync(
+        string alias,
+        string version,
+        CancellationToken cancellationToken = default
+    )
+    {
+        var mod = await GetModInternalAsync(alias, cancellationToken);
+
+        if (mod is null)
+        {
+            return null;
+        }
+
+        var release = mod.Releases.FirstOrDefault(f => f.ModVersion == version);
+
+        if (release is null)
+        {
+            return null;
+        }
+
+        using var httpResponse = await httpClient.GetAsync(release.MainFile, cancellationToken);
+
+        httpResponse.EnsureSuccessStatusCode();
+
+        // TODO: obviously this isn't great
+
+        var ms = new MemoryStream();
+
+        await httpResponse.Content.CopyToAsync(ms, cancellationToken);
+
+        ms.Seek(0, SeekOrigin.Begin);
+
+        return new(ms, release.FileName, MediaTypeNames.Application.Zip);
     }
 
     private async Task<LegacyModDetails?> GetModByAssetIdInternalAsync(

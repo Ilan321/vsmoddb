@@ -28,6 +28,8 @@ public class ModDetailsDto
     /// <inheritdoc cref="Mod.Tags"/>
     public List<ModTagDto> Tags { get; set; }
 
+    public List<ModReleaseDto> Releases { get; set; }
+
     public required string Author { get; set; }
     public required string Side { get; set; }
     public int Downloads { get; set; }

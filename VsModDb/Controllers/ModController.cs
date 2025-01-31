@@ -8,6 +8,7 @@ using VsModDb.Models.Exceptions;
 using VsModDb.Models.Mods;
 using VsModDb.Models.Options;
 using VsModDb.Models.Requests.Mods;
+using VsModDb.Models.Responses.Mods;
 using VsModDb.Services.LegacyApi;
 using VsModDb.Services.Mods;
 using VsModDb.Services.Storage;
@@ -105,15 +106,57 @@ public class ModController(
 
     [AllowAnonymous]
     [HttpGet("comments")]
-    public async Task<Results<NotFound, Ok<List<ModCommentDto>>>> GetModComments(
+    public async Task<Results<NotFound, Ok<GetModCommentsResponse>>> GetModComments(
         [FromRoute] string alias,
+        [FromQuery] int skip,
         CancellationToken cancellationToken
     )
     {
+        const int PageSize = 25;
+
         var comments = legacyOptions.Value.Enabled
             ? await apiClient.GetModCommentsAsync(alias, cancellationToken)
             : await modService.GetModCommentsAsync(alias, cancellationToken);
 
-        return TypedResults.Ok(comments);
+        if (comments is null)
+        {
+            return TypedResults.NotFound();
+        }
+
+        // TODO: actual pagination lol
+
+        var page = comments
+            .Skip(skip)
+            .Take(PageSize)
+            .ToList();
+
+        return TypedResults.Ok(new GetModCommentsResponse
+        {
+            TotalComments = comments.Count,
+            Comments = page
+        });
+    }
+
+    [AllowAnonymous]
+    [HttpGet("releases/{version}")]
+    public async Task<Results<NotFound, FileStreamHttpResult>> DownloadModFile(
+        [FromRoute] string alias,
+        [FromRoute] string version,
+        CancellationToken cancellationToken
+    )
+    {
+        if (legacyOptions.Value.Enabled)
+        {
+            var downloadStream = await apiClient.GetModFileAsync(alias, version, cancellationToken);
+
+            if (downloadStream is null)
+            {
+                return TypedResults.NotFound();
+            }
+
+            return TypedResults.Stream(downloadStream.Stream, contentType: downloadStream.ContentType, fileDownloadName: downloadStream.FileName);
+        }
+
+        throw new NotImplementedException();
     }
 }
