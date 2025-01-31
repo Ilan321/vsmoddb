@@ -1,9 +1,11 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using System.Net;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using VsModDb.Data;
+using VsModDb.Models.Exceptions;
 using VsModDb.Models.Mods;
 using VsModDb.Models.Options;
 using VsModDb.Models.Responses.Mods;
@@ -36,6 +38,24 @@ public class ModsController(
         if (legacyOptions.Value.Enabled)
         {
             return await legacyApiClient.GetModsAsync(sort, direction, take, skip, author, cancellationToken);
+        }
+
+        throw new NotImplementedException();
+    }
+
+    [AllowAnonymous]
+    [HttpGet("by-author")]
+    [ResponseCache(Duration = 300)]
+    public async Task<List<ModDisplayDto>> GetModsByAuthor([FromQuery] string author, CancellationToken cancellationToken)
+    {
+        if (string.IsNullOrWhiteSpace(author))
+        {
+            throw new StatusCodeException(HttpStatusCode.BadRequest, "INVALID_AUTHOR");
+        }
+
+        if (legacyOptions.Value.Enabled)
+        {
+            return await legacyApiClient.GetModsByAuthorAsync(author, cancellationToken);
         }
 
         throw new NotImplementedException();

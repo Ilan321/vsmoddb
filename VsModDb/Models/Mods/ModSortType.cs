@@ -6,5 +6,6 @@ public enum ModSortType
     Downloads,
     Comments,
     Trending,
-    Name
+    Name,
+    Updated
 }
