@@ -9,6 +9,10 @@ const sortItems = [
     value: ModSortType.CREATED
   },
   {
+    text: 'date updated',
+    value: ModSortType.UPDATED
+  },
+  {
     text: 'number of downloads',
     value: ModSortType.DOWNLOADS
   },
@@ -23,6 +27,17 @@ const sortItems = [
   {
     text: 'name',
     value: ModSortType.NAME
+  }
+];
+
+const sortDirectionItems = [
+  {
+    text: 'descending',
+    value: ModSortDirection.DESC
+  },
+  {
+    text: 'ascending',
+    value: ModSortDirection.ASC
   }
 ];
 
@@ -48,15 +63,23 @@ store.initAsync();
       />
     </div>
     <h3
-      class="mb-2 pb-2 flex flex-row items-baseline gap-2 border-b border-primary"
+      class="mb-2 pb-2 flex flex-row items-baseline gap-1 border-b border-primary"
     >
       Showing {{ store.mods.length }} out of {{ store.totalMods }}, sorted by
-      <v-select
-        v-model="store.sort.type"
-        :items="sortItems"
-        class="w-48"
-        @update:model-value="store.fetchModsAsync({ reset: true })"
-      />
+      <div class="flex flex-row gap-2">
+        <v-select
+          v-model="store.sort.type"
+          :items="sortItems"
+          text-only
+          @update:model-value="store.fetchModsAsync({ reset: true })"
+        />
+        <v-select
+          v-model="store.sort.direction"
+          :items="sortDirectionItems"
+          text-only
+          @update:model-value="store.fetchModsAsync({ reset: true })"
+        />
+      </div>
       <spinner v-if="store.loading.value" />
     </h3>
     <mod-grid :mods="store.mods" />

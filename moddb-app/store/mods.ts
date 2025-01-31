@@ -99,7 +99,8 @@ export enum ModSortType {
   DOWNLOADS = 'Downloads',
   COMMENTS = 'Comments',
   TRENDING = 'Trending',
-  NAME = 'Name'
+  NAME = 'Name',
+  UPDATED = 'Updated'
 }
 
 export enum ModSortDirection {
