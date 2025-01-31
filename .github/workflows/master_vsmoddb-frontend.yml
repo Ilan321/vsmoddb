@@ -77,4 +77,6 @@ jobs:
           slot-name: 'Production'
           package: ./release.zip
           startup-command: 'node ./server/index.mjs'
+          clean: true
+          
           
