@@ -95,11 +95,9 @@ const useModDetailsStore = defineStore('mod-details', {
           success: true
         };
       } catch (error: any) {
-        console.log({ error });
-
         return {
           success: false,
-          statuscode: error.statusCode
+          statuscode: error?.statusCode
         };
       }
     },
