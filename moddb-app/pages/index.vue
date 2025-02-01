@@ -3,13 +3,12 @@ import type { LatestModCommentModel } from '~/models/mods/LatestModCommentModel'
 import type { ModDisplayModel } from '~/models/mods/ModDisplayModel';
 import ModComment from '~/components/mods/ModComment.vue';
 import useAuthStore from '~/store/auth';
+import useHomepageStore from '~/store/homepage';
 
 const auth = useAuthStore();
+const store = useHomepageStore();
 
-const latestMods = useFetch<ModDisplayModel[]>('/api/v1/mods/latest');
-const latestModComments = useFetch<LatestModCommentModel[]>(
-  '/api/v1/mods/latest/comments'
-);
+store.refreshAsync();
 </script>
 
 <template>
@@ -58,27 +57,24 @@ const latestModComments = useFetch<LatestModCommentModel[]>(
     <div v-else>Your mods</div>
     <div class="flex justify-start gap-2 align-center mt-4 mb-2">
       <h2 class="text-xl">Latest 10 mods</h2>
-      <spinner v-if="latestMods.status.value === 'pending'" />
+      <spinner v-if="store.mods.loading.value" />
       <error-icon
-        v-if="latestModComments.status.value === 'error'"
+        v-if="store.mods.loading.error"
         tooltip="An error occurred while loading the latest mods"
       />
     </div>
-    <mod-grid
-      v-if="latestMods.status.value === 'success'"
-      :mods="latestMods.data.value!"
-    />
+    <mod-grid v-if="store.mods.value.length > 0" :mods="store.mods.value" />
     <div class="flex justify-start gap-2 align-center mt-4 mb-2">
       <h2 class="text-xl">Latest 20 comments</h2>
-      <spinner v-if="latestModComments.status.value === 'pending'" />
+      <spinner v-if="store.comments.loading.value" />
       <error-icon
-        v-if="latestModComments.status.value === 'error'"
+        v-if="store.comments.loading.error"
         tooltip="An error occurred while loading the latest comments"
       />
     </div>
-    <div v-if="latestModComments.data.value" class="flex flex-col gap-2">
+    <div class="flex flex-col gap-2">
       <mod-comment
-        v-for="comment of latestModComments.data.value"
+        v-for="comment of store.comments.value"
         :key="comment.comment.id"
         :comment="comment.comment"
         :mod="comment.mod"
