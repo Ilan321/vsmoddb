@@ -322,7 +322,7 @@ public class LegacyApiClient(
 
     public async Task<List<ModDisplayDto>> GetModsByAuthorAsync(string author, CancellationToken cancellationToken = default)
     {
-        var cacheKey = $"legacy.mods.by-author";
+        var cacheKey = $"legacy.mods.by-author.{author}";
 
         if (!memoryCache.TryGetValue<List<ModDisplayDto>>(cacheKey, out var authorMods) || authorMods is null)
         {
