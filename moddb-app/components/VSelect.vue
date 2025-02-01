@@ -5,6 +5,8 @@ const props = defineProps<{
   items: { text: string; value: string }[];
   modelValue?: string;
   textOnly?: boolean;
+  label?: string;
+  class?: any;
 }>();
 
 const emit = defineEmits<{
@@ -20,14 +22,23 @@ const selectedItem = computed(() =>
 
 <template>
   <Menu as="div" class="relative inline-block text-left">
-    <div>
+    <div :class="props.class">
+      <slot name="label">
+        <label
+          v-if="label"
+          class="block text-sm/6 font-medium text-gray-900 mb-2"
+        >
+          {{ label }}
+        </label>
+      </slot>
       <slot name="trigger">
         <MenuButton
           :class="[
             textOnly
               ? 'underline'
-              : `inline-flex w-full justify-center gap-x-1.5 rounded-md bg-white px-3 py-2
-                text-sm text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50`
+              : `inline-flex w-full justify-center gap-x-1.5 rounded-md bg-secondary/90 px-3 py-2
+                text-start text-sm text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300
+                hover:bg-gray-50`
           ]"
         >
           <span class="grow">

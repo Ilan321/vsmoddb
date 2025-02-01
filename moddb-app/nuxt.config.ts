@@ -55,7 +55,8 @@ export default defineNuxtConfig({
         'spinner',
         'circle-exclamation',
         'chevron-down',
-        'clock'
+        'clock',
+        'circle-info'
       ]
     }
   },
