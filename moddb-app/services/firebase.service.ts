@@ -1,6 +1,6 @@
 // Import the functions you need from the SDKs you need
-import { initializeApp } from 'firebase/app';
-import { getAnalytics } from 'firebase/analytics';
+import { initializeApp, type FirebaseApp } from 'firebase/app';
+import { getAnalytics, type Analytics } from 'firebase/analytics';
 
 const firebaseConfig = {
   apiKey: 'AIzaSyD6KdCuiN5G81HwZ7oRGgceCXD9ZKTD1hk',
@@ -12,11 +12,13 @@ const firebaseConfig = {
   measurementId: 'G-QS5VWYTNEQ'
 };
 
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
-const analytics = getAnalytics(app);
-
-export default {
-  app,
-  analytics
+const state = {
+  app: null! as FirebaseApp,
+  analytics: null! as Analytics,
+  init() {
+    this.app = initializeApp(firebaseConfig);
+    this.analytics = getAnalytics(state.app);
+  }
 };
+
+export default state;
