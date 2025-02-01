@@ -3,12 +3,14 @@ using System.Resources;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Routing.Constraints;
+using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.Caching.Memory;
 using VsModDb.Extensions;
 using VsModDb.Json;
 using VsModDb.Models.Assets;
 using VsModDb.Models.Legacy;
 using VsModDb.Models.Mods;
+using VsModDb.Models.Requests.Mods;
 using VsModDb.Models.Responses.Mods;
 using VsModDb.Services.Storage.Providers;
 
@@ -38,6 +40,8 @@ public interface ILegacyApiClient
         string version,
         CancellationToken cancellationToken = default
     );
+
+    Task<GetModsResponse> SearchModsAsync(SearchModsRequest request, CancellationToken cancellationToken = default);
 }
 
 public class LegacyApiClient(
@@ -238,15 +242,7 @@ public class LegacyApiClient(
 
                     return new LatestModCommentDto
                     {
-                        Mod = new()
-                        {
-                            Name = modDetails!.Name,
-                            Id = modDetails.ModId,
-                            Comments = modDetails.Comments,
-                            Downloads = modDetails.Downloads,
-                            Summary = modDetails.Summary,
-                            UrlAlias = modDetails.UrlAlias
-                        },
+                        Mod = ToModDisplayDto(modDetails!),
                         Comment = new()
                         {
                             Author = userName!,
@@ -320,7 +316,10 @@ public class LegacyApiClient(
         };
     }
 
-    public async Task<List<ModDisplayDto>> GetModsByAuthorAsync(string author, CancellationToken cancellationToken = default)
+    public async Task<List<ModDisplayDto>> GetModsByAuthorAsync(
+        string author,
+        CancellationToken cancellationToken = default
+    )
     {
         var cacheKey = $"legacy.mods.by-author.{author}";
 
@@ -375,6 +374,116 @@ public class LegacyApiClient(
         ms.Seek(0, SeekOrigin.Begin);
 
         return new(ms, release.FileName, MediaTypeNames.Application.Zip);
+    }
+
+    public async Task<GetModsResponse> SearchModsAsync(
+        SearchModsRequest request,
+        CancellationToken cancellationToken = default
+    )
+    {
+        const char ExactSearchChar = '"';
+
+        var allMods = await GetModsAsync(cancellationToken);
+
+        log.LogDebug("Performing search for mods using query {@query}", request);
+
+        var query = allMods
+            .AsEnumerable();
+
+        if (!string.IsNullOrWhiteSpace(request.Text))
+        {
+            var isExactSearch = request.Text.StartsWith(ExactSearchChar) && request.Text.EndsWith(ExactSearchChar) && request.Text.Length > 2;
+
+            var searchTerm = isExactSearch
+                ? request.Text![1..^1]
+                : request.Text!;
+
+            query = query.Where(f =>
+                DoStringSearch(f.Name, searchTerm, isExactSearch) ||
+                DoStringSearch(f.Summary, searchTerm, isExactSearch) ||
+                DoStringSearch(f.UrlAlias, searchTerm, isExactSearch) ||
+                DoStringSearch(f.Author, searchTerm, isExactSearch));
+        }
+
+        if (!string.IsNullOrWhiteSpace(request.Side))
+        {
+            // TODO - this is a bit more complex as the mod side is found in the details model
+        }
+
+        if (!string.IsNullOrWhiteSpace(request.GameVersion))
+        {
+            // TODO - this is a bit more complex as the game version is found in the details model
+        }
+
+        if (request.Tags is { Count: > 0 })
+        {
+            query = query.Where(f => request.Tags.All(t => f.Tags.Contains(t, StringComparer.OrdinalIgnoreCase)));
+        }
+
+        if (request.Sort.HasValue)
+        {
+            var isDesc = request.Direction == ModSortDirection.Descending;
+
+            query = request.Sort switch
+            {
+                ModSortType.Created => OrderBy(query, f => f.ModId, isDesc),
+                ModSortType.Downloads => OrderBy(query, f => f.Downloads, isDesc),
+                ModSortType.Comments => OrderBy(query, f => f.Comments, isDesc),
+                ModSortType.Trending => OrderBy(query, f => f.TrendingPoints, isDesc),
+                ModSortType.Name => OrderBy(query, f => f.Name, isDesc),
+                ModSortType.Updated => OrderBy(query, f => f.LastReleased, isDesc),
+                _ => query // Do nothing
+            };
+        }
+
+        var mods = query.ToList();
+
+        var page = mods
+            .Skip(request.Skip ?? 0)
+            .Take(request.Take ?? 25)
+            .ToList();
+
+        return new()
+        {
+            TotalMods = mods.Count,
+            Mods = page.Select(ToModDisplayDto).ToList()
+        };
+    }
+
+    private IOrderedEnumerable<TSource> OrderBy<TSource, TKey>(
+        IEnumerable<TSource> range,
+        Func<TSource, TKey> selector,
+        bool isDesc
+    ) => isDesc
+        ? range.OrderByDescending(selector)
+        : range.OrderBy(selector);
+
+    private bool DoStringSearch(
+        string? a,
+        string b,
+        bool isExact
+    )
+    {
+        if (!isExact)
+        {
+            return a?.Contains(b, StringComparison.OrdinalIgnoreCase) == true;
+        }
+
+        if (string.IsNullOrWhiteSpace(a))
+        {
+            return false;
+        }
+
+        if (string.Equals(a, b, StringComparison.OrdinalIgnoreCase))
+        {
+            return true;
+        }
+
+        // Try checking word by word
+
+        var split = a.Split(' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+
+        return split.Any(f => string.Equals(f, b, StringComparison.OrdinalIgnoreCase));
     }
 
     private async Task<LegacyModDetails?> GetModByAssetIdInternalAsync(
@@ -599,6 +708,7 @@ public class LegacyApiClient(
         Comments = f.Comments,
         Downloads = f.Downloads,
         Summary = f.Summary,
-        UrlAlias = f.UrlAlias
+        UrlAlias = f.UrlAlias,
+        Author = f.Author
     };
 }

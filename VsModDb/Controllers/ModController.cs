@@ -109,6 +109,7 @@ public class ModController(
     public async Task<Results<NotFound, Ok<GetModCommentsResponse>>> GetModComments(
         [FromRoute] string alias,
         [FromQuery] int skip,
+        [FromQuery] ModSortDirection? sort,
         CancellationToken cancellationToken
     )
     {
@@ -124,6 +125,16 @@ public class ModController(
         }
 
         // TODO: actual pagination lol
+
+        if (sort.HasValue)
+        {
+            comments = sort.Value switch
+            {
+                ModSortDirection.Ascending => comments.OrderBy(f => f.TimeCreatedUtc).ToList(),
+                ModSortDirection.Descending => comments.OrderByDescending(f => f.TimeCreatedUtc).ToList(),
+                _ => comments // Do nothing
+            };
+        }
 
         var page = comments
             .Skip(skip)
