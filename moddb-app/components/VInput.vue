@@ -41,6 +41,7 @@ const elementId = computed(() => props.id || defaultId);
           placeholder:text-gray-400 focus:outline focus:outline-2 focus:-outline-offset-2
           focus:outline-primary"
         :placeholder="placeholder"
+        :value="modelValue"
         :aria-describedby="`${elementId}-description`"
         @input="
           $emit('update:modelValue', ($event.target as HTMLInputElement).value)
