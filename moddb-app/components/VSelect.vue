@@ -41,9 +41,11 @@ const selectedItem = computed(() =>
                 hover:bg-gray-50`
           ]"
         >
-          <span class="grow">
-            {{ selectedItem?.text }}
-          </span>
+          <slot name="trigger-content" :text="selectedItem?.text">
+            <span class="grow">
+              {{ selectedItem?.text }}
+            </span>
+          </slot>
           <font-awesome
             icon="chevron-down"
             :class="[

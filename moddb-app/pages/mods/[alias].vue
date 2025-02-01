@@ -2,6 +2,7 @@
 import ModComment from '~/components/mods/ModComment.vue';
 import Breadcrumbs from '~/components/Breadcrumbs.vue';
 import useModDetailsStore from '~/store/mod-details';
+import { ModSortDirection as SortDirection } from '~/store/mods';
 
 const route = useRoute();
 const store = useModDetailsStore();
@@ -25,6 +26,24 @@ useTitle(
     return store.mod.name!;
   })
 );
+
+function scrollToTop() {
+  window.scrollTo({
+    top: 0,
+    behavior: 'smooth'
+  });
+}
+
+const commentSortItems = [
+  {
+    text: 'newest first',
+    value: SortDirection.DESC
+  },
+  {
+    text: 'oldest first',
+    value: SortDirection.ASC
+  }
+];
 </script>
 
 <template>
@@ -52,9 +71,22 @@ useTitle(
     <NuxtPage v-if="!store.loading.value" />
     <div class="mod-page__comments" id="comments">
       <div class="mod-page__comments-header">
-        <h3 class="text-lg mb-2">
+        <h3 class="text-lg mb-2 flex items-baseline gap-1">
           {{ store.comments.value.length }} comments
           <span class="text-sm">(out of {{ store.comments.total }}) </span>
+          <v-select
+            text-only
+            :items="commentSortItems"
+            v-model="store.comments.sort"
+            @update:model-value="
+              store.loadComments({ reset: true, clear: false })
+            "
+          >
+            <template #trigger-content="{ text }">
+              <span class="grow text-sm text-gray-500">{{ text }}</span>
+            </template>
+          </v-select>
+          <spinner v-if="store.comments.loading.value" class="text-sm pt-0.5" />
         </h3>
         <div
           class="mod-page__comments-container flex flex-col justify-start items-start gap-2"
@@ -65,16 +97,26 @@ useTitle(
             :comment="comment"
             :author="comment.author === store.mod.author"
           />
-          <div class="w-full flex justify-center">
+          <div
+            class="w-full flex flex-col md:flex-row justify-center items-center gap-2"
+          >
             <v-button
               v-if="store.comments.total > store.comments.value.length"
               @click="store.loadComments"
               :loading="store.comments.loading.value"
               :disabled="store.comments.loading.value"
-              class="mt-2"
             >
-              Load more
+              Load more ({{
+                store.comments.total - store.comments.value.length
+              }}
+              comments left)
             </v-button>
+            <span
+              class="text-sm text-gray-500 cursor-pointer underline"
+              @click="scrollToTop"
+            >
+              back to top
+            </span>
           </div>
         </div>
       </div>

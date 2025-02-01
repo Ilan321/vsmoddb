@@ -83,4 +83,8 @@ a.link-blue {
 a.link {
   @apply hover:text-gray-800 underline;
 }
+
+a.link-dotted {
+  @apply underline decoration-dotted;
+}
 </style>

@@ -59,6 +59,34 @@ const timeUpdatedReadable = computed(() =>
           <span class="text-gray-600">Downloads: </span>
           <span>{{ store.mod.downloads }}</span>
         </div>
+        <div>
+          <span class="text-gray-600">
+            Latest file (for
+            {{
+              getReadableGameVersions(store.latestFile!.gameVersions)
+                .map((f) => f.version)
+                .join(', ')
+            }}):
+          </span>
+          <span>
+            <a
+              :href="`/api/v1/mods/${store.alias}/releases/${store.latestFile!.modVersion}`"
+              class="link-blue"
+            >
+              {{ store.latestFile!.fileName }}
+            </a>
+          </span>
+          <span
+            class="text-sm ms-2"
+            title="Works only on Windows and v1.18.0-rc.1 or newer"
+          >
+            <a
+              :href="`vintagestorymodinstall://${store.alias}@${store.latestFile!.modVersion}`"
+              class="link-dotted text-blue-700"
+              >(1-click install)</a
+            >
+          </span>
+        </div>
       </div>
     </div>
     <div id="mod-description__description">
