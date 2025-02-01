@@ -71,7 +71,7 @@ const useModDetailsStore = defineStore('mod-details', {
           };
         }
 
-        if (response.error) {
+        if (response.error.value) {
           throw response.error.value;
         }
 
