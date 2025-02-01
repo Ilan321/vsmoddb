@@ -19,8 +19,6 @@ const isMarkdown = computed(
 );
 
 function handleClick(element: HTMLElement) {
-  console.log({ element });
-
   if (element.classList.contains('spoiler-toggle')) {
     element.parentElement?.classList.toggle('expanded');
   }
