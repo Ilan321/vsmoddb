@@ -8,6 +8,7 @@ using VsModDb.Data;
 using VsModDb.Models.Exceptions;
 using VsModDb.Models.Mods;
 using VsModDb.Models.Options;
+using VsModDb.Models.Requests.Mods;
 using VsModDb.Models.Responses.Mods;
 using VsModDb.Services.LegacyApi;
 using VsModDb.Services.Mods;
@@ -38,6 +39,21 @@ public class ModsController(
         if (legacyOptions.Value.Enabled)
         {
             return await legacyApiClient.GetModsAsync(sort, direction, take, skip, author, cancellationToken);
+        }
+
+        throw new NotImplementedException();
+    }
+
+    [AllowAnonymous]
+    [HttpPost("search")]
+    public async Task<GetModsResponse> SearchMods(
+        [FromBody] SearchModsRequest request,
+        CancellationToken cancellationToken
+    )
+    {
+        if (legacyOptions.Value.Enabled)
+        {
+            return await legacyApiClient.SearchModsAsync(request, cancellationToken);
         }
 
         throw new NotImplementedException();
@@ -84,7 +100,8 @@ public class ModsController(
                 UrlAlias = f.UrlAlias,
                 Name = f.Name,
                 Summary = f.Summary,
-                Comments = f.Comments.Count
+                Comments = f.Comments.Count,
+                Author = "tbd"
             })
             .ToListAsync(cancellationToken: cancellationToken);
 
@@ -122,7 +139,8 @@ public class ModsController(
                     Comments = f.LinkedMod.Comments.Count,
                     Summary = f.LinkedMod.Summary,
                     UrlAlias = f.LinkedMod.UrlAlias,
-                    Downloads = 0 // TODO: Implement download count
+                    Downloads = 0, // TODO: Implement download count
+                    Author = "tbd" // TODO: Implement author name
                 }
             })
             .ToListAsync(cancellationToken: cancellationToken);
