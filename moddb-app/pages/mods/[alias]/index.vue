@@ -59,7 +59,7 @@ const timeUpdatedReadable = computed(() =>
           <span class="text-gray-600">Downloads: </span>
           <span>{{ store.mod.downloads }}</span>
         </div>
-        <div>
+        <div v-if="store.latestFile">
           <span class="text-gray-600">
             Latest file (for
             {{
