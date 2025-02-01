@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import firebaseService from './services/firebase.service';
 import useAuthStore from './store/auth';
 
 const auth = useAuthStore();
