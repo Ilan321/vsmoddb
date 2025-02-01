@@ -21,9 +21,22 @@ export function getReadableGameVersions(
     const common = `${major}.${minor}.x`;
 
     if (!commonMajorMinors.some((v) => v.version === common)) {
+      const commonVersions = versions.filter((v) => {
+        const [vMajor, vMinor] = v.split('.');
+        return vMajor === major && vMinor === minor;
+      });
+
+      if (commonVersions.length === 1) {
+        commonMajorMinors.push({
+          version: version
+        });
+
+        continue;
+      }
+
       commonMajorMinors.push({
         version: common,
-        tooltip: versions.join(', ')
+        tooltip: commonVersions.join(', ')
       });
     }
   }
