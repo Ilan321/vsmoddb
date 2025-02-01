@@ -76,8 +76,10 @@ const auth = useAuthStore();
 }
 
 a.link-blue {
-  @apply text-blue-600 hover:text-blue-700 transition-colors underline;
-  @apply cursor-pointer;
+  @apply transition-colors;
+  @apply text-blue-600 hover:text-blue-700;
+  @apply visited:text-purple-700;
+  @apply cursor-pointer underline;
 }
 
 a.link {
