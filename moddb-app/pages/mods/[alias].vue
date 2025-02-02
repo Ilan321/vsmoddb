@@ -88,8 +88,16 @@ initAsync();
       <div class="mod-page__comments-header">
         <h3 class="text-lg mb-2 flex items-baseline gap-1">
           {{ store.comments.value.length }} comments
-          <span class="text-sm">(out of {{ store.comments.total }}) </span>
+          <span
+            class="text-sm"
+            v-if="
+              store.comments.value.length < store.comments.total &&
+              store.comments.total > 0
+            "
+            >(out of {{ store.comments.total }})
+          </span>
           <v-select
+            v-if="store.comments.total > 0"
             text-only
             :items="commentSortItems"
             v-model="store.comments.sort"
@@ -116,7 +124,10 @@ initAsync();
             class="w-full flex flex-col md:flex-row justify-center items-center gap-2"
           >
             <v-button
-              v-if="store.comments.total > store.comments.value.length"
+              v-if="
+                store.comments.value.length > 0 &&
+                store.comments.total > store.comments.value.length
+              "
               @click="store.loadComments"
               :loading="store.comments.loading.value"
               :disabled="store.comments.loading.value"
@@ -128,6 +139,7 @@ initAsync();
             </v-button>
             <span
               class="text-sm text-gray-500 cursor-pointer underline"
+              v-if="store.comments.value.length > 0"
               @click="scrollToTop"
             >
               back to top
