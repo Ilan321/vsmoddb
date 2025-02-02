@@ -98,7 +98,7 @@ public class LegacyApiClient(
 
         var response = await GetOrFetchAsync<LegacyGetCommentsResponse>(
             $"legacy.comments.by-mod.{mod.ModId}",
-            $"api/comments/{mod.ModId}",
+            $"api/comments/{mod.AssetId}",
             TimeSpan.FromMinutes(5),
             cancellationToken
         );
