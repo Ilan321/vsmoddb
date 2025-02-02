@@ -4,6 +4,7 @@ import { ModSideFilter, ModSortDirection } from './mods';
 import type { ModCommentModel } from '~/models/mods/ModCommentModel';
 import type { ModRelease } from '~/models/mods/ModRelease';
 import type { GetModCommentsResponse } from '~/models/responses/mods/GetModCommentsResponse';
+import type { PageLoadResult } from '~/models/pages/PageLoadResult';
 
 function getState() {
   return {
@@ -47,7 +48,7 @@ const useModDetailsStore = defineStore('mod-details', {
 
       return this.refreshAsync();
     },
-    async refreshAsync() {
+    async refreshAsync(): Promise<PageLoadResult> {
       this.loading.value = true;
 
       const loadId = getLoadToken();
@@ -65,7 +66,13 @@ const useModDetailsStore = defineStore('mod-details', {
         );
 
         if (!checkLoadToken(this.loading.id, loadId)) {
-          return;
+          return {
+            success: true
+          };
+        }
+
+        if (response.error.value) {
+          throw response.error.value;
         }
 
         const mod = response.data.value!;
@@ -81,8 +88,17 @@ const useModDetailsStore = defineStore('mod-details', {
         this.mod.timeUpdatedUtc = mod.timeUpdatedUtc;
         this.mod.downloads = mod.downloads;
         this.mod.releases = mod.releases;
-      } finally {
-        if (checkLoadToken(this.loading.id, loadId)) this.loading.value = false;
+
+        this.loading.value = false;
+
+        return {
+          success: true
+        };
+      } catch (error: any) {
+        return {
+          success: false,
+          statuscode: error?.statusCode
+        };
       }
     },
     async loadComments(options?: { reset?: boolean; clear?: boolean }) {
@@ -114,6 +130,8 @@ const useModDetailsStore = defineStore('mod-details', {
         this.comments.value = options?.reset
           ? response.data.value!.comments
           : [...this.comments.value, ...response.data.value!.comments];
+      } catch (error) {
+        // ignore comment load errors
       } finally {
         if (checkLoadToken(this.comments.loading.id, loadId))
           this.comments.loading.value = false;
