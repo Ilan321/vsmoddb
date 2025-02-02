@@ -4,6 +4,7 @@ import Breadcrumbs from '~/components/Breadcrumbs.vue';
 import useModDetailsStore from '~/store/mod-details';
 import { ModSortDirection as SortDirection } from '~/store/mods';
 
+const router = useRouter();
 const route = useRoute();
 const store = useModDetailsStore();
 
@@ -14,8 +15,6 @@ const pageName = computed(() => {
 
   return store.mod.name!;
 });
-
-store.initAsync(route.params.alias as string);
 
 useTitle(
   computed(() => {
@@ -44,6 +43,22 @@ const commentSortItems = [
     value: SortDirection.ASC
   }
 ];
+
+async function initAsync() {
+  const result = await store.initAsync(route.params.alias as string);
+
+  if (!result.success) {
+    // Handle error
+
+    if (result.statuscode === 404) {
+      console.log(`got 404 for ${route.fullPath}`);
+
+      return router.push(`/404?path=${route.fullPath}`);
+    }
+  }
+}
+
+initAsync();
 </script>
 
 <template>
@@ -69,7 +84,7 @@ const commentSortItems = [
       <tab :to="`/mods/${store.alias}/files`"> Files </tab>
     </div>
     <NuxtPage v-if="!store.loading.value" />
-    <div class="mod-page__comments" id="comments">
+    <div v-if="!store.loading.value" class="mod-page__comments" id="comments">
       <div class="mod-page__comments-header">
         <h3 class="text-lg mb-2 flex items-baseline gap-1">
           {{ store.comments.value.length }} comments
