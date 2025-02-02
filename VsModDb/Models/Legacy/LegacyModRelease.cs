@@ -7,8 +7,9 @@ public class LegacyModRelease
 {
     public int ReleaseId { get; set; }
     public string MainFile { get; set; }
+    [JsonConverter(typeof(LegacyZeroableStringConverter))]
     public string FileName { get; set; }
-    public int FileId { get; set; }
+    public int? FileId { get; set; }
     public int Downloads { get; set; }
     public List<string> Tags { get; set; }
     public string ModIdStr { get; set; }

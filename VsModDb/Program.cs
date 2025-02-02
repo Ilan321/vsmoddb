@@ -1,3 +1,4 @@
+using Hangfire;
 using ilandev.AspNetCore.ExceptionHandler;
 using ilandev.AspNetCore.ExceptionHandler.Models;
 using ilandev.Extensions.Configuration;
@@ -12,9 +13,9 @@ using VsModDb.Data.Repositories;
 using VsModDb.Extensions;
 using VsModDb.Models.Exceptions;
 using VsModDb.Models.Options;
+using VsModDb.Services.Jobs;
 using VsModDb.Services.LegacyApi;
 using VsModDb.Services.Mods;
-using VsModDb.Services.Storage;
 using VsModDb.Services.Storage.Providers;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -78,7 +79,28 @@ builder.Services.AddExceptionHandlingMiddleware(c => c.JsonSerializerOptions(j =
 
 builder.Services.AddSwaggerGen();
 
+builder.Services.AddHangfire(c => c
+    .UseInMemoryStorage()
+    .UseRecommendedSerializerSettings()
+);
+
+builder.Services.AddHangfireServer();
+
+builder.Services.AddDistributedMemoryCache();
+
+if (builder.Configuration.GetConnectionString("redis") is { } redisConnectionString)
+{
+    builder.Services.AddStackExchangeRedisCache(c => c.Configuration = redisConnectionString);
+}
+
 var app = builder.Build();
+
+var jobManager = app.Services.GetRequiredService<IRecurringJobManager>();
+
+if (app.Environment.IsDevelopment())
+{
+    app.UseHangfireDashboard();
+}
 
 app.UseAuthorization();
 
@@ -88,5 +110,14 @@ app.UseSwagger();
 app.UseSwaggerUI(c => c.EnableTryItOutByDefault());
 
 app.MapControllers();
+
+if (app.Configuration.GetAppOptions<LegacyClientOptions>()?.EnablePeriodicModFetch == true)
+{
+    // Add the HydrateModDetailsJob to the recurring job manager, run it every 5 minutes
+
+    jobManager.AddOrUpdate<HydrateModDetailsJob>(HydrateModDetailsJob.JobId, job => job.ExecuteAsync(app.Lifetime.ApplicationStopping), "*/5 * * * *");
+
+    jobManager.Trigger(HydrateModDetailsJob.JobId);
+}
 
 app.Run();

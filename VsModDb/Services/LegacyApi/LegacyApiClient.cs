@@ -1,6 +1,10 @@
-﻿using System.Net.Mime;
+﻿using System.Collections.Concurrent;
+using System.Diagnostics;
+using System.Net.Mime;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using Ilan321.AspNetCore.Caching.Extensions;
+using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Caching.Memory;
 using VsModDb.Extensions;
 using VsModDb.Json;
@@ -39,15 +43,23 @@ public interface ILegacyApiClient
     );
 
     Task<GetModsResponse> SearchModsAsync(SearchModsRequest request, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Queries all mods' details and populates the cache with the results.
+    /// </summary>
+    Task HydrateModDetailsAsync(CancellationToken cancellationToken = default);
 }
 
 public class LegacyApiClient(
     ILogger<LegacyApiClient> log,
     HttpClient httpClient,
     IMemoryCache memoryCache,
+    IDistributedCache distributedCache,
     IStorageProvider storageProvider
 ) : ILegacyApiClient
 {
+    private const string AllModDetailsCacheKey = "legacy.mods.all-details";
+
     private static readonly JsonSerializerOptions JsonOptions = ConfigureJsonOptions();
 
     public async Task<ModDetailsDto?> GetModAsync(string alias, CancellationToken cancellationToken = default)
@@ -150,24 +162,26 @@ public class LegacyApiClient(
 
         return await response!.Comments!
             .Take(20)
-            .SelectAsync(async comment =>
-            {
-                var userName = await GetUserAsync(comment.UserId, cancellationToken);
-                var modDetails = mods.FirstOrDefault(f => f.AssetId == comment.AssetId);
-
-                return new LatestModCommentDto
+            .SelectAsync(
+                async comment =>
                 {
-                    Mod = ToModDisplayDto(modDetails!),
-                    Comment = new()
+                    var userName = await GetUserAsync(comment.UserId, cancellationToken);
+                    var modDetails = mods.FirstOrDefault(f => f.AssetId == comment.AssetId);
+
+                    return new LatestModCommentDto
                     {
-                        Author = userName!,
-                        Comment = comment.Text,
-                        ContentType = ModCommentContentType.Html,
-                        TimeCreatedUtc = comment.Created,
-                        TimeUpdatedUtc = comment.LastModified
-                    }
-                };
-            }).ToListAsync(cancellationToken);
+                        Mod = ToModDisplayDto(modDetails!),
+                        Comment = new()
+                        {
+                            Author = userName!,
+                            Comment = comment.Text,
+                            ContentType = ModCommentContentType.Html,
+                            TimeCreatedUtc = comment.Created,
+                            TimeUpdatedUtc = comment.LastModified
+                        }
+                    };
+                }
+            ).ToListAsync(cancellationToken);
     }
 
     public async Task<GetModsResponse> GetModsAsync(
@@ -234,7 +248,13 @@ public class LegacyApiClient(
         var allMods = await GetModsAsync(cancellationToken);
 
         return allMods
-            .Where(f => string.Equals(f.Author, author, StringComparison.OrdinalIgnoreCase))
+            .Where(
+                f => string.Equals(
+                    f.Author,
+                    author,
+                    StringComparison.OrdinalIgnoreCase
+                )
+            )
             .OrderByDescending(f => f.ModId)
             .Select(ToModDisplayDto)
             .ToList();
@@ -272,7 +292,11 @@ public class LegacyApiClient(
 
         ms.Seek(0, SeekOrigin.Begin);
 
-        return new(ms, release.FileName, MediaTypeNames.Application.Zip);
+        return new(
+            ms,
+            release.FileName,
+            MediaTypeNames.Application.Zip
+        );
     }
 
     public async Task<GetModsResponse> SearchModsAsync(
@@ -298,21 +322,37 @@ public class LegacyApiClient(
                 ? request.Text![1..^1]
                 : request.Text!;
 
-            query = query.Where(f =>
-                DoStringSearch(f.Name, searchTerm, isExactSearch) ||
-                DoStringSearch(f.Summary, searchTerm, isExactSearch) ||
-                DoStringSearch(f.UrlAlias, searchTerm, isExactSearch) ||
-                DoStringSearch(f.Author, searchTerm, isExactSearch));
+            query = query.Where(
+                f =>
+                    DoStringSearch(
+                        f.Name,
+                        searchTerm,
+                        isExactSearch
+                    ) ||
+                    DoStringSearch(
+                        f.Summary,
+                        searchTerm,
+                        isExactSearch
+                    ) ||
+                    DoStringSearch(
+                        f.UrlAlias,
+                        searchTerm,
+                        isExactSearch
+                    ) ||
+                    DoStringSearch(
+                        f.Author,
+                        searchTerm,
+                        isExactSearch
+                    )
+            );
         }
 
-        if (!string.IsNullOrWhiteSpace(request.Side))
-        {
-            // TODO - this is a bit more complex as the mod side is found in the details model
-        }
+        // Check the cached mod details for the side/game version properties
+        // If not found in cache, skip this filter
 
-        if (!string.IsNullOrWhiteSpace(request.GameVersion))
+        if (!string.IsNullOrWhiteSpace(request.Side) || request.GameVersions is { Length: > 0 })
         {
-            // TODO - this is a bit more complex as the game version is found in the details model
+            query = await FilterByModDetailsAsync(query, request);
         }
 
         if (request.Tags is { Count: > 0 })
@@ -326,12 +366,36 @@ public class LegacyApiClient(
 
             query = request.Sort switch
             {
-                ModSortType.Created => OrderBy(query, f => f.ModId, isDesc),
-                ModSortType.Downloads => OrderBy(query, f => f.Downloads, isDesc),
-                ModSortType.Comments => OrderBy(query, f => f.Comments, isDesc),
-                ModSortType.Trending => OrderBy(query, f => f.TrendingPoints, isDesc),
-                ModSortType.Name => OrderBy(query, f => f.Name, isDesc),
-                ModSortType.Updated => OrderBy(query, f => f.LastReleased, isDesc),
+                ModSortType.Created => OrderBy(
+                    query,
+                    f => f.ModId,
+                    isDesc
+                ),
+                ModSortType.Downloads => OrderBy(
+                    query,
+                    f => f.Downloads,
+                    isDesc
+                ),
+                ModSortType.Comments => OrderBy(
+                    query,
+                    f => f.Comments,
+                    isDesc
+                ),
+                ModSortType.Trending => OrderBy(
+                    query,
+                    f => f.TrendingPoints,
+                    isDesc
+                ),
+                ModSortType.Name => OrderBy(
+                    query,
+                    f => f.Name,
+                    isDesc
+                ),
+                ModSortType.Updated => OrderBy(
+                    query,
+                    f => f.LastReleased,
+                    isDesc
+                ),
                 _ => query // Do nothing
             };
         }
@@ -348,7 +412,120 @@ public class LegacyApiClient(
             TotalMods = mods.Count,
             Mods = page.Select(ToModDisplayDto).ToList()
         };
+
+        async Task<IEnumerable<LegacyMod>> FilterByModDetailsAsync(
+            IEnumerable<LegacyMod> mods,
+            SearchModsRequest request
+        )
+        {
+            var modDetails = await TryGetCachedModDetails(cancellationToken);
+
+            if (modDetails is null)
+            {
+                return mods.Where(_ => false);
+            }
+
+            return mods.Where(
+                mod =>
+                {
+                    if (!modDetails.TryGetValue(mod.ModId, out var details))
+                    {
+                        return false;
+                    }
+
+                    // Filter by side if specified
+
+                    if (!string.IsNullOrWhiteSpace(request.Side) && request.Side != "any")
+                    {
+                        if (details.Side != request.Side)
+                        {
+                            return false;
+                        }
+                    }
+
+                    // Filter by game version if specified, if at least one version matches
+
+                    if (request.GameVersions is { Length: > 0 })
+                    {
+                        if (!details.Releases.Any(f => request.GameVersions.Any(f.Tags.Contains)))
+                        {
+                            return false;
+                        }
+                    }
+
+                    return true;
+                }
+            );
+        }
+
+        IOrderedEnumerable<TSource> OrderBy<TSource, TKey>(
+            IEnumerable<TSource> range,
+            Func<TSource, TKey> selector,
+            bool isDesc
+        ) => isDesc
+            ? range.OrderByDescending(selector)
+            : range.OrderBy(selector);
     }
+
+    /// <summary>
+    /// Queries all mods' details and populates the cache with the results.
+    /// </summary>
+    public async Task HydrateModDetailsAsync(CancellationToken cancellationToken = default)
+    {
+        log.LogDebug("Repopulating all mod details");
+
+        var sw = new Stopwatch();
+
+        sw.Start();
+
+        var mods = await GetModsAsync(cancellationToken);
+
+        log.LogDebug("Found {count} mods to repopulate details for", mods.Count);
+
+        var dict = new ConcurrentDictionary<int, LegacyModDetails>();
+
+        await Parallel.ForEachAsync(
+            mods,
+            cancellationToken,
+            async (mod, _) =>
+            {
+                var modDetails = await GetModInternalAsync(mod.ModId, cancellationToken);
+
+                if (modDetails == null)
+                {
+                    return;
+                }
+
+                dict.TryAdd(modDetails.ModId, modDetails);
+            }
+        );
+
+        sw.Stop();
+
+        log.LogDebug(
+            "Finished fetching {count} mod details in {elapsed}, total mod details retrieved: {count}",
+            mods.Count,
+            sw.Elapsed,
+            dict.Count
+        );
+
+        await distributedCache.SetAsync(
+            AllModDetailsCacheKey,
+            dict.ToDictionary(f => f.Key, f => f.Value),
+            new DistributedCacheEntryOptions(),
+            JsonExtensions.Default,
+            cancellationToken
+        );
+    }
+
+    public Task<Dictionary<int, LegacyModDetails>?> TryGetCachedModDetails(
+        CancellationToken cancellationToken = default
+    ) =>
+        distributedCache.GetAsync<Dictionary<int, LegacyModDetails>?>(
+            AllModDetailsCacheKey,
+            JsonExtensions.Default,
+            cancellationToken: cancellationToken
+        );
 
     private async Task<LegacyModDetails?> GetModByAssetIdInternalAsync(
         int assetId,
@@ -372,7 +549,7 @@ public class LegacyApiClient(
             return null;
         }
 
-        return await GetModInternalAsync(mod.ModId.ToString(), cancellationToken);
+        return await GetModInternalAsync(mod.ModId, cancellationToken);
     }
 
     private async Task<Dictionary<int, string>> GetUsersAsync(CancellationToken cancellationToken = default)
@@ -418,7 +595,11 @@ public class LegacyApiClient(
 
             memoryCache.Remove("legacy.users");
 
-            memoryCache.Set(RefetchCacheKey, true, TimeSpan.FromMinutes(5));
+            memoryCache.Set(
+                RefetchCacheKey,
+                true,
+                TimeSpan.FromMinutes(5)
+            );
 
             map = await GetUsersAsync(cancellationToken);
 
@@ -465,27 +646,21 @@ public class LegacyApiClient(
 
             await using var logoStream = await logoResponse.Content.ReadAsStreamAsync(cancellationToken);
 
-            await storageProvider.SaveFileAsync(assetPath, logoStream, cancellationToken);
+            await storageProvider.SaveFileAsync(
+                assetPath,
+                logoStream,
+                cancellationToken
+            );
         }
 
         return await storageProvider.GetFileAsync(assetPath, cancellationToken);
     }
 
-    private Task<LegacyModDetails?> GetModInternalAsync(
-        string alias,
-        CancellationToken cancellationToken = default
-    ) =>
+    private Task<LegacyModDetails?> GetModInternalAsync(int modId, CancellationToken cancellationToken = default) =>
         GetOrFetchAsync<LegacyModDetails?>(
-            $"legacy.mods.{alias}",
-            async ct =>
+            $"legacy.mods.by-id.{modId}",
+            async _ =>
             {
-                var modId = await GetModIdAsync(alias, cancellationToken);
-
-                if (modId is null)
-                {
-                    return null;
-                }
-
                 var response = await GetOrFetchAsync<LegacyGetModDetailsResponse>(
                     $"legacy.responses.mod-by-id.{modId}",
                     $"api/mod/{modId}",
@@ -498,6 +673,21 @@ public class LegacyApiClient(
             TimeSpan.FromMinutes(5),
             cancellationToken
         );
+
+    private async Task<LegacyModDetails?> GetModInternalAsync(
+        string alias,
+        CancellationToken cancellationToken = default
+    )
+    {
+        var modId = await GetModIdAsync(alias, cancellationToken);
+
+        if (!modId.HasValue)
+        {
+            return null;
+        }
+
+        return await GetModInternalAsync(modId.Value, cancellationToken);
+    }
 
     private Task<int?> GetModIdAsync(string alias, CancellationToken cancellationToken) =>
         GetOrFetchAsync<int?>(
@@ -563,19 +753,16 @@ public class LegacyApiClient(
 
         if (response is not null)
         {
-            memoryCache.Set(cacheKey, response, cacheTtl);
+            memoryCache.Set(
+                cacheKey,
+                response,
+                cacheTtl
+            );
         }
 
         return response;
     }
 
-    private IOrderedEnumerable<TSource> OrderBy<TSource, TKey>(
-        IEnumerable<TSource> range,
-        Func<TSource, TKey> selector,
-        bool isDesc
-    ) => isDesc
-        ? range.OrderByDescending(selector)
-        : range.OrderBy(selector);
 
     private bool DoStringSearch(
         string? a,
@@ -593,7 +780,11 @@ public class LegacyApiClient(
             return false;
         }
 
-        if (string.Equals(a, b, StringComparison.OrdinalIgnoreCase))
+        if (string.Equals(
+                a,
+                b,
+                StringComparison.OrdinalIgnoreCase
+            ))
         {
             return true;
         }
@@ -602,7 +793,13 @@ public class LegacyApiClient(
 
         var split = a.Split(' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
 
-        return split.Any(f => string.Equals(f, b, StringComparison.OrdinalIgnoreCase));
+        return split.Any(
+            f => string.Equals(
+                f,
+                b,
+                StringComparison.OrdinalIgnoreCase
+            )
+        );
     }
 
     private List<ModReleaseDto> ToModReleaseDtos(List<LegacyModRelease> legacyModReleases)
