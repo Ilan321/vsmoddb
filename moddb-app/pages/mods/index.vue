@@ -78,7 +78,7 @@ useTitle('Mods');
   <div class="mods">
     <div class="flex flex-col md:flex-row gap-2">
       <v-input
-        class="w-full max-w-64 lg:max-w-80"
+        class="w-full md:max-w-64 lg:max-w-80"
         v-model="store.filter.text"
         label="Search"
         placeholder="Search by name, author, description"
@@ -98,7 +98,7 @@ useTitle('Mods');
           </label>
         </template>
       </v-input>
-      <div class="flex flex-col justify-end max-w-32 w-full">
+      <div class="flex flex-col justify-end md:max-w-24 w-full">
         <v-select
           v-model="store.filter.side"
           :items="sideFilterItems"
@@ -106,7 +106,7 @@ useTitle('Mods');
           @update:model-value="store.fetchModsAsync({ reset: true })"
         />
       </div>
-      <div class="flex flex-col justify-end max-w-80 w-full">
+      <div class="flex flex-col justify-end md:max-w-80 w-full">
         <v-select
           v-model="store.filter.tags"
           :items="store.filterTags"
@@ -115,7 +115,7 @@ useTitle('Mods');
           @update:model-value="store.fetchModsAsync({ reset: true })"
         />
       </div>
-      <div class="flex flex-col justify-end max-w-80 w-full">
+      <div class="flex flex-col justify-end md:max-w-80 w-full">
         <v-select
           v-model="store.filter.gameVersions"
           :items="store.filterGameVersions"
