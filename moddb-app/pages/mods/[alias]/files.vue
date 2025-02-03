@@ -89,15 +89,27 @@ function getReadableTimeCreated(time: string) {
             </span>
           </div>
         </div>
-        <div class="mt-1">
-          <font-awesome icon="download" />
-          <span class="ms-2">{{ file.downloads }}</span>
-        </div>
-        <div>
-          <font-awesome icon="clock" />
-          <span class="ms-2">
-            {{ getReadableTimeCreated(file.timeCreatedUtc) }}
-          </span>
+        <div class="mt-1 flex flex-row justify-between">
+          <div>
+            <div>
+              <font-awesome icon="download" />
+              <span class="ms-2">{{ file.downloads }}</span>
+            </div>
+            <div>
+              <font-awesome icon="clock" />
+              <span class="ms-2">
+                {{ getReadableTimeCreated(file.timeCreatedUtc) }}
+              </span>
+            </div>
+          </div>
+          <div class="flex flex-col justify-end">
+            <a
+              :href="`/api/v1/mods/${store.alias}/releases/${file.modVersion}`"
+              class="link-blue"
+            >
+              <v-button>Download</v-button>
+            </a>
+          </div>
         </div>
       </div>
     </div>
