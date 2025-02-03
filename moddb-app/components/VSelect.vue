@@ -1,23 +1,73 @@
 <script setup lang="ts">
 import { Menu, MenuButton, MenuItem, MenuItems } from '@headlessui/vue';
 
-const props = defineProps<{
-  items: { text: string; value: string }[];
-  modelValue?: string;
-  textOnly?: boolean;
-  label?: string;
-  class?: any;
-}>();
+interface SelectItem {
+  text: string;
+  value: string;
+}
+
+const props = withDefaults(
+  defineProps<{
+    items: SelectItem[];
+    modelValue?: string | string[];
+    textOnly?: boolean;
+    label?: string;
+    class?: any;
+    placeholder?: string;
+    maxItemsVisible?: number;
+  }>(),
+  {
+    maxItemsVisible: 2
+  }
+);
 
 const emit = defineEmits<{
-  (e: 'update:model-value', value?: string): void;
+  (e: 'update:model-value', value?: string | string[]): void;
 }>();
 
-const selectedItem = computed(() =>
-  props.modelValue
-    ? props.items.find((f) => f.value === props.modelValue)
-    : undefined
-);
+const valueText = computed(() => {
+  if (!Array.isArray(props.modelValue)) {
+    return props.modelValue
+      ? props.items.find((f) => f.value === props.modelValue)?.text
+      : undefined;
+  }
+
+  if (!props.modelValue) {
+    return '';
+  }
+
+  const selectedItems = props.items.filter((f) =>
+    props.modelValue!.includes(f.value)
+  );
+
+  const items = selectedItems.slice(0, props.maxItemsVisible);
+
+  let text = items.map((f) => f.text).join(', ');
+
+  if (selectedItems.length > props.maxItemsVisible) {
+    text += ` (+ ${selectedItems.length - props.maxItemsVisible} more)`;
+  }
+
+  return text;
+});
+
+function handleClick(item: SelectItem, close: () => void) {
+  if (Array.isArray(props.modelValue)) {
+    const isInModelValue = props.modelValue.includes(item.value);
+
+    const newValue = isInModelValue
+      ? props.modelValue.filter((f) => f !== item.value)
+      : [...props.modelValue, item.value];
+
+    emit('update:model-value', newValue);
+
+    return;
+  }
+
+  emit('update:model-value', item.value);
+
+  close();
+}
 </script>
 
 <template>
@@ -36,14 +86,17 @@ const selectedItem = computed(() =>
           :class="[
             textOnly
               ? 'underline'
-              : `inline-flex w-full justify-center gap-x-1.5 rounded-md bg-secondary/90 px-3 py-2
-                text-start text-sm text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300
-                hover:bg-gray-50`
+              : `inline-flex w-full h-9 justify-center gap-x-1.5 rounded-md bg-secondary/90 px-3
+                py-2 text-start text-sm text-gray-900 outline outline-1 -outline-offset-1
+                outline-gray-300 placeholder:text-gray-400 hover:bg-gray-50`
           ]"
         >
-          <slot name="trigger-content" :text="selectedItem?.text">
-            <span class="grow">
-              {{ selectedItem?.text }}
+          <slot name="trigger-content" :text="valueText">
+            <span v-if="valueText" class="grow">
+              {{ valueText }}
+            </span>
+            <span v-else-if="placeholder" class="grow text-gray-400">
+              {{ placeholder }}
             </span>
           </slot>
           <font-awesome
@@ -74,18 +127,28 @@ const selectedItem = computed(() =>
             <MenuItem
               v-for="item of items"
               :key="item.value"
-              v-slot="{ active }"
+              v-slot="{ active, close }"
             >
               <a
+                class="flex items-center max-w-full truncate"
                 :class="[
                   active
                     ? 'bg-gray-100 text-gray-900 outline-none'
                     : 'text-gray-700',
                   'block px-4 py-2 text-sm'
                 ]"
-                @click="emit('update:model-value', item.value)"
+                @click.prevent="handleClick(item, close)"
               >
-                {{ item.text }}
+                <span class="grow">
+                  {{ item.text }}
+                </span>
+                <font-awesome
+                  v-if="
+                    Array.isArray(props.modelValue) &&
+                    props.modelValue.includes(item.value)
+                  "
+                  icon="check"
+                />
               </a>
             </MenuItem>
           </div>
