@@ -76,7 +76,7 @@ useTitle('Mods');
 
 <template>
   <div class="mods">
-    <div class="flex flex-row gap-2">
+    <div class="flex flex-col md:flex-row gap-2">
       <v-input
         class="w-full max-w-64 lg:max-w-80"
         v-model="store.filter.text"
@@ -98,11 +98,29 @@ useTitle('Mods');
           </label>
         </template>
       </v-input>
-      <div class="flex flex-col justify-end max-w-32 w-full hidden">
+      <div class="flex flex-col justify-end max-w-32 w-full">
         <v-select
           v-model="store.filter.side"
           :items="sideFilterItems"
           label="Side"
+          @update:model-value="store.fetchModsAsync({ reset: true })"
+        />
+      </div>
+      <div class="flex flex-col justify-end max-w-80 w-full">
+        <v-select
+          v-model="store.filter.tags"
+          :items="store.filterTags"
+          label="Tags"
+          placeholder="Select tags"
+          @update:model-value="store.fetchModsAsync({ reset: true })"
+        />
+      </div>
+      <div class="flex flex-col justify-end max-w-80 w-full">
+        <v-select
+          v-model="store.filter.gameVersions"
+          :items="store.filterGameVersions"
+          label="Game versions"
+          placeholder="Select game versions"
           @update:model-value="store.fetchModsAsync({ reset: true })"
         />
       </div>

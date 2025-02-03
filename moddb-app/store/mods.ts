@@ -1,5 +1,7 @@
 import type { ModDisplayModel } from '~/models/mods/ModDisplayModel';
 import type { GetModsResponse } from '~/models/responses/mods/GetModsResponse';
+import type { GetTagsResponse } from '~/models/responses/mods/GetTagsResponse';
+import type { TagModel } from '~/models/TagModel';
 
 function getState() {
   return {
@@ -11,17 +13,22 @@ function getState() {
       text: '',
       side: ModSideFilter.Any,
       author: '',
-      gameVersion: '',
-      tags: {
-        selected: [] as string[],
-        available: [] as string[]
-      }
+      gameVersions: [] as string[],
+      tags: [] as string[]
     },
     loading: {
       value: false,
       id: undefined as string | undefined
     },
     mods: [] as ModDisplayModel[],
+    tags: {
+      loading: {
+        value: false,
+        id: ''
+      },
+      tags: [] as TagModel[],
+      gameVersions: [] as TagModel[]
+    },
     pageSize: 25,
     totalMods: 0
   };
@@ -35,9 +42,37 @@ const useModsStore = defineStore('mods', {
         return;
       }
 
-      await this.fetchModsAsync({
-        initial: true
-      });
+      await Promise.all([
+        this.refreshTagsAsync(),
+        this.fetchModsAsync({
+          initial: true
+        })
+      ]);
+    },
+    async refreshTagsAsync() {
+      this.tags.loading.value = true;
+
+      const loadId = getLoadToken();
+      this.tags.loading.id = loadId;
+
+      try {
+        const response = await useFetch<GetTagsResponse>('/api/v1/mods/tags');
+
+        if (response.error.value) {
+          throw response.error.value;
+        }
+
+        if (!checkLoadToken(this.tags.loading.id, loadId)) {
+          return;
+        }
+
+        this.tags.tags = response.data.value!.tags;
+        this.tags.gameVersions = response.data.value!.gameVersions;
+      } finally {
+        if (checkLoadToken(this.tags.loading.id, loadId)) {
+          this.tags.loading.value = false;
+        }
+      }
     },
     async fetchModsAsync(options?: { reset?: boolean; initial?: boolean }) {
       this.loading.value = true;
@@ -52,8 +87,10 @@ const useModsStore = defineStore('mods', {
           direction: this.sort.direction,
           side: this.filter.side,
           author: this.filter.author,
-          gameVersion: this.filter.gameVersion,
-          tags: this.filter.tags.selected,
+          gameVersions: this.getApplicableGameVersions(
+            this.filter.gameVersions
+          ).map((f) => f.value),
+          tags: this.filter.tags,
           skip: options?.reset || options?.initial ? 0 : this.mods.length,
           take: this.pageSize
         };
@@ -61,7 +98,7 @@ const useModsStore = defineStore('mods', {
         let response: GetModsResponse | null | undefined;
 
         if (options?.initial) {
-          const fetchResponse = await useFetch<GetModsResponse>(
+          const modsFetchResponse = await useFetch<GetModsResponse>(
             '/api/v1/mods/search',
             {
               method: 'POST',
@@ -69,13 +106,13 @@ const useModsStore = defineStore('mods', {
             }
           );
 
-          if (fetchResponse.error.value) {
-            throw fetchResponse.error;
+          if (modsFetchResponse.error.value) {
+            throw modsFetchResponse.error;
           }
 
-          response = fetchResponse.data.value;
+          response = modsFetchResponse.data.value;
         } else {
-          response = await $fetch('/api/v1/mods/search', {
+          response = await $fetch<GetModsResponse>('/api/v1/mods/search', {
             method: 'POST',
             body: request
           });
@@ -90,6 +127,7 @@ const useModsStore = defineStore('mods', {
         }
 
         this.totalMods = response.totalMods;
+
         if (options?.reset) {
           this.mods = response.mods;
         } else {
@@ -104,7 +142,31 @@ const useModsStore = defineStore('mods', {
       }
     }
   },
-  getters: {}
+  getters: {
+    filterTags: (state) =>
+      state.tags.tags.map((f) => ({
+        text: f.value,
+        value: f.value
+      })),
+    filterGameVersions: (state) =>
+      getCommonGameVersions(state.tags.gameVersions.map((f) => f.value)).map(
+        (f) => ({
+          text: f,
+          value: f
+        })
+      ),
+    /**
+     * Returns the selected game versions by parsing the selected gameVersions
+     */
+    getApplicableGameVersions: (state) => (gameVersions: string[]) =>
+      state.tags.gameVersions.filter((f) =>
+        gameVersions.some(
+          (gv) =>
+            f.value.split('.').slice(0, 2).join('.') ===
+            gv.split('.').slice(0, 2).join('.')
+        )
+      )
+  }
 });
 
 export default useModsStore;

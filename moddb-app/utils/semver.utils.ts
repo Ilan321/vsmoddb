@@ -43,3 +43,11 @@ export function getReadableGameVersions(
 
   return commonMajorMinors;
 }
+
+export function getCommonGameVersions(versions: string[]) {
+  const mapped = versions
+    .map((f) => f.split('.').slice(0, 2).join('.'))
+    .map((f) => `${f}.x`);
+
+  return mapped.filter((f, index) => mapped.indexOf(f) === index);
+}
