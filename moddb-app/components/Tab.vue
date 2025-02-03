@@ -8,8 +8,9 @@ const props = defineProps<{
 <template>
   <NuxtLink
     :to="props.to"
-    class="tab bg-black/20 hover:bg-black/15 px-2 h-8 flex justify-center items-center
-      first:rounded-tl last:rounded-tr not-first:border-l-0 border border-stone-400"
+    class="tab bg-black/20 hover:bg-black/15 px-2 h-8 flex justify-start md:justify-center
+      items-center first:rounded-tl first:rounded-tr md:rounded-tr-none
+      md:last:rounded-tr not-first:border-l-0 border border-stone-400"
     exact-active-class="active"
     :target="props.target"
   >

@@ -78,7 +78,7 @@ initAsync();
     />
     <div
       v-if="!store.loading.value"
-      class="tabs flex flex-row border-b-2 border-black/20"
+      class="tabs flex flex-col md:flex-row border-b-2 border-black/20"
     >
       <tab :to="`/mods/${store.alias}`"> Description </tab>
       <tab :to="`/mods/${store.alias}/files`"> Files </tab>
