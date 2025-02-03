@@ -14,4 +14,8 @@ export interface ModDetailsModel {
   side: string;
   downloads: number;
   releases: ModRelease[];
+  sourceCodeUrl?: string;
+  homepageUrl?: string;
+  issuerTrackerUrl?: string;
+  wikiUrl?: string;
 }

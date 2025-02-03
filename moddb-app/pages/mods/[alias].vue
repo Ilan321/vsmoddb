@@ -82,6 +82,34 @@ initAsync();
     >
       <tab :to="`/mods/${store.alias}`"> Description </tab>
       <tab :to="`/mods/${store.alias}/files`"> Files </tab>
+      <tab
+        v-if="store.mod.homepageUrl"
+        :to="store.mod.homepageUrl"
+        target="_blank"
+      >
+        Home page
+        <font-awesome icon="up-right-from-square" class="ms-1 text-xs" />
+      </tab>
+      <tab
+        v-if="store.mod.sourceCodeUrl"
+        :to="store.mod.sourceCodeUrl"
+        target="_blank"
+      >
+        Source code
+        <font-awesome icon="up-right-from-square" class="ms-1 text-xs" />
+      </tab>
+      <tab
+        v-if="store.mod.issuerTrackerUrl"
+        :to="store.mod.issuerTrackerUrl"
+        target="_blank"
+      >
+        Issuer tracker
+        <font-awesome icon="up-right-from-square" class="ms-1 text-xs" />
+      </tab>
+      <tab v-if="store.mod.wikiUrl" :to="store.mod.wikiUrl" target="_blank">
+        Wiki
+        <font-awesome icon="up-right-from-square" class="ms-1 text-xs" />
+      </tab>
     </div>
     <NuxtPage v-if="!store.loading.value" />
     <div v-if="!store.loading.value" class="mod-page__comments" id="comments">

@@ -24,7 +24,11 @@ function getState() {
       timeCreatedUtc: undefined as string | undefined,
       timeUpdatedUtc: undefined as string | undefined,
       downloads: 0,
-      releases: [] as ModRelease[]
+      releases: [] as ModRelease[],
+      homepageUrl: undefined as string | undefined,
+      sourceCodeUrl: undefined as string | undefined,
+      issuerTrackerUrl: undefined as string | undefined,
+      wikiUrl: undefined as string | undefined
     },
     comments: {
       loading: {
@@ -88,6 +92,10 @@ const useModDetailsStore = defineStore('mod-details', {
         this.mod.timeUpdatedUtc = mod.timeUpdatedUtc;
         this.mod.downloads = mod.downloads;
         this.mod.releases = mod.releases;
+        this.mod.homepageUrl = mod.homepageUrl;
+        this.mod.sourceCodeUrl = mod.sourceCodeUrl;
+        this.mod.issuerTrackerUrl = mod.issuerTrackerUrl;
+        this.mod.wikiUrl = mod.wikiUrl;
 
         this.loading.value = false;
 

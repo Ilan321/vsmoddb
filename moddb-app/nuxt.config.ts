@@ -57,7 +57,8 @@ export default defineNuxtConfig({
         'chevron-down',
         'clock',
         'circle-info',
-        'check'
+        'check',
+        'up-right-from-square'
       ]
     }
   },

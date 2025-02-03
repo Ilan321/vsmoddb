@@ -1,14 +1,17 @@
 <script setup lang="ts">
 const props = defineProps<{
   to: string;
+  target?: '_blank';
 }>();
 </script>
 
 <template>
   <NuxtLink
     :to="props.to"
-    class="tab bg-black/20 hover:bg-black/15 px-2 h-8 flex justify-center items-center first:rounded-tl last:rounded-tr not-first:border-l-0 border border-stone-400"
+    class="tab bg-black/20 hover:bg-black/15 px-2 h-8 flex justify-center items-center
+      first:rounded-tl last:rounded-tr not-first:border-l-0 border border-stone-400"
     exact-active-class="active"
+    :target="props.target"
   >
     <div>
       <slot></slot>
