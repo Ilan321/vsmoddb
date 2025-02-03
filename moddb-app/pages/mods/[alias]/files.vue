@@ -43,8 +43,11 @@ function getReadableTimeCreated(time: string) {
           <td class="px-2 py-1 border">
             {{ getReadableTimeCreated(file.timeCreatedUtc) }}
           </td>
-          <td class="px-2 py-1 border">
-            <code>// TODO</code>
+          <td
+            class="px-2 py-1 border underline decoration-dotted cursor-help"
+            title="Due to ModDB API constraints, changelogs are currently unsupported 😞"
+          >
+            Unavailable
           </td>
           <td class="px-2 py-1 border">
             <a
