@@ -15,4 +15,9 @@ public class LegacyClientOptions : IAppOptions
     /// Gets the base address of the legacy ModDB.
     /// </summary>
     public required string BaseAddress { get; init; }
+
+    /// <summary>
+    /// Enables periodic fetching of mods from the legacy API to keep the cache hydrated.
+    /// </summary>
+    public bool EnablePeriodicModFetch { get; init; }
 }

@@ -147,4 +147,16 @@ public class ModsController(
 
         return comments;
     }
+
+    [AllowAnonymous]
+    [HttpGet("tags")]
+    public async Task<GetTagsResponse> GetTags(CancellationToken cancellationToken = default)
+    {
+        if (legacyOptions.Value.Enabled)
+        {
+            return await legacyApiClient.GetTagsAsync(cancellationToken);
+        }
+
+        throw new NotImplementedException();
+    }
 }
