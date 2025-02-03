@@ -20,6 +20,11 @@ using VsModDb.Services.Storage.Providers;
 
 var builder = WebApplication.CreateBuilder(args);
 
+if (builder.Configuration["ASPNETCORE_SERVER"] is { } serverName)
+{
+    builder.Configuration.AddJsonFile($"appsettings.{serverName}.json", optional: true);
+}
+
 Log.Logger = new LoggerConfiguration()
     .WriteTo.Console(outputTemplate: "[{Timestamp:HH:mm:ss} {Level:u3}] {SourceContext}{NewLine}               {Message:lj}{NewLine}{Exception}")
     .ReadFrom.Configuration(builder.Configuration)

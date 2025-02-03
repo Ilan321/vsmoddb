@@ -48,6 +48,8 @@ public interface ILegacyApiClient
     /// Queries all mods' details and populates the cache with the results.
     /// </summary>
     Task HydrateModDetailsAsync(CancellationToken cancellationToken = default);
+
+    Task<GetTagsResponse> GetTagsAsync(CancellationToken cancellationToken = default);
 }
 
 public class LegacyApiClient(
@@ -418,6 +420,8 @@ public class LegacyApiClient(
             SearchModsRequest request
         )
         {
+            const string AnySide = "any";
+
             var modDetails = await TryGetCachedModDetails(cancellationToken);
 
             if (modDetails is null)
@@ -435,9 +439,9 @@ public class LegacyApiClient(
 
                     // Filter by side if specified
 
-                    if (!string.IsNullOrWhiteSpace(request.Side) && request.Side != "any")
+                    if (!string.IsNullOrWhiteSpace(request.Side) && !string.Equals(request.Side, AnySide, StringComparison.OrdinalIgnoreCase))
                     {
-                        if (details.Side != request.Side)
+                        if (!string.Equals(details.Side, request.Side, StringComparison.OrdinalIgnoreCase))
                         {
                             return false;
                         }
@@ -516,6 +520,29 @@ public class LegacyApiClient(
             JsonExtensions.Default,
             cancellationToken
         );
+    }
+
+    public async Task<GetTagsResponse> GetTagsAsync(CancellationToken cancellationToken = default)
+    {
+        var tags = await GetOrFetchAsync<LegacyGetTagsResponse>(
+            "legacy.tags",
+            "api/tags",
+            TimeSpan.FromMinutes(60),
+            cancellationToken
+        );
+
+        var gameVersions = await GetOrFetchAsync<LegacyGetGameVersionsResponse>(
+            "legacy.game-versions",
+            "api/gameversions",
+            TimeSpan.FromMinutes(60),
+            cancellationToken
+        );
+
+        return new()
+        {
+            Tags = tags!.Tags.Select(ToModTag).ToList(),
+            GameVersions = gameVersions!.GameVersions.Select(ToModTag).ToList()
+        };
     }
 
     public Task<Dictionary<int, LegacyModDetails>?> TryGetCachedModDetails(
@@ -824,9 +851,15 @@ public class LegacyApiClient(
         return tagNames
             .Select(tag => legacyTags.FirstOrDefault(f => f.Name == tag))
             .OfType<LegacyTag>()
-            .Select(legacyTag => new ModTagDto { Value = legacyTag.Name, Color = legacyTag.Color })
+            .Select(ToModTag)
             .ToList();
     }
+
+    private ModTagDto ToModTag(LegacyTag t) => new()
+    {
+        Value = t.Name,
+        Color = t.Color
+    };
 
     private static ModDisplayDto ToModDisplayDto(LegacyMod f) => new()
     {
