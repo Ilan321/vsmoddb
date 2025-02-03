@@ -87,6 +87,10 @@ public class LegacyApiClient(
             Side = legacyMod.Side,
             Downloads = legacyMod.Downloads,
             Follows = legacyMod.Follows,
+            HomepageUrl = legacyMod.HomepageUrl,
+            SourceCodeUrl = legacyMod.SourceCodeUrl,
+            IssueTrackerUrl = legacyMod.IssueTrackerUrl,
+            WikiUrl = legacyMod.WikiUrl,
             Releases = ToModReleaseDtos(legacyMod.Releases)
         };
     }

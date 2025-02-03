@@ -34,4 +34,8 @@ public class ModDetailsDto
     public required string Side { get; set; }
     public int Downloads { get; set; }
     public int Follows { get; set; }
+    public string? HomepageUrl { get; set; }
+    public string? SourceCodeUrl { get; set; }
+    public string? IssueTrackerUrl { get; set; }
+    public string? WikiUrl { get; set; }
 }
