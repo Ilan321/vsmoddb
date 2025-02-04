@@ -3,5 +3,6 @@
 @theme {
   --font-sans: InterVariable, sans-serif;
   --color-primary: rgba(219, 208, 182, 0.7);
+  --color-primarybg: rgb(199, 174, 141);
   --color-secondary: rgba(255, 255, 255, 0.4);
 }

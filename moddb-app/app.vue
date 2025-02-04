@@ -2,6 +2,14 @@
 import useAuthStore from './store/auth';
 
 const auth = useAuthStore();
+
+async function logout() {
+  await $fetch('/api/v1/account/logout', {
+    ignoreResponseError: true
+  });
+
+  window.location.reload();
+}
 </script>
 
 <template>
@@ -25,7 +33,6 @@ const auth = useAuthStore();
       >
         <nav-item to="/">Home</nav-item>
         <nav-item to="/mods">Mods</nav-item>
-        <nav-item v-if="auth.isLoggedIn" to="/submit">Submit a mod</nav-item>
         <nav-item to="https://wiki.vintagestory.at/Troubleshooting_Mods">
           Mod troubleshooting
         </nav-item>
@@ -34,9 +41,28 @@ const auth = useAuthStore();
           <font-awesome icon="right-to-bracket" />
           <span class="ms-1"> Login </span>
         </nav-item>
-        <nav-item v-else :to="`/users/${auth.username}`">
-          {{ auth.username }}
-        </nav-item>
+        <v-menu v-if="auth.isLoggedIn">
+          <template #activator>
+            <nav-item>
+              {{ auth.username }}
+            </nav-item>
+          </template>
+          <div class="flex flex-col">
+            <NuxtLink to="/profile">
+              <div
+                class="px-2 py-1 cursor-pointer bg-primarybg hover:bg-primarybg/80"
+              >
+                Profile
+              </div>
+            </NuxtLink>
+            <div
+              class="px-2 py-1 cursor-pointer bg-primarybg hover:bg-primarybg/80"
+              @click="logout"
+            >
+              Log out
+            </div>
+          </div>
+        </v-menu>
       </nav>
       <div class="content-inner px-4 py-2">
         <NuxtPage />
