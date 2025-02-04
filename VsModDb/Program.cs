@@ -35,7 +35,14 @@ builder.Host.UseSerilog();
 
 builder.Services.AddDbContextPool<ModDbContext>(c => c.UseSqlServer(builder.Configuration.GetConnectionString("db")));
 
-builder.Services.AddIdentity<User, IdentityRole>()
+builder.Services.AddIdentity<User, IdentityRole>(
+        c =>
+        {
+            c.Password.RequireDigit = false;
+            c.Password.RequireLowercase = false;
+            c.Password.RequireUppercase = false;
+            c.Password.RequireNonAlphanumeric = false;
+        })
     .AddEntityFrameworkStores<ModDbContext>()
     .AddDefaultTokenProviders();
 
