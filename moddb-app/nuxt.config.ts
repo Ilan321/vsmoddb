@@ -58,8 +58,10 @@ export default defineNuxtConfig({
         'clock',
         'circle-info',
         'check',
-        'up-right-from-square'
-      ]
+        'up-right-from-square',
+        'right-to-bracket'
+      ],
+      brands: ['google']
     }
   },
   mdc: {

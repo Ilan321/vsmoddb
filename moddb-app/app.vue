@@ -26,9 +26,17 @@ const auth = useAuthStore();
         <nav-item to="/">Home</nav-item>
         <nav-item to="/mods">Mods</nav-item>
         <nav-item v-if="auth.isLoggedIn" to="/submit">Submit a mod</nav-item>
-        <nav-item to="https://wiki.vintagestory.at/Troubleshooting_Mods"
-          >Mod troubleshooting</nav-item
-        >
+        <nav-item to="https://wiki.vintagestory.at/Troubleshooting_Mods">
+          Mod troubleshooting
+        </nav-item>
+        <div class="md:grow"></div>
+        <nav-item v-if="!auth.isLoggedIn" to="/login">
+          <font-awesome icon="right-to-bracket" />
+          <span class="ms-1"> Login </span>
+        </nav-item>
+        <nav-item v-else :to="`/users/${auth.username}`">
+          {{ auth.username }}
+        </nav-item>
       </nav>
       <div class="content-inner px-4 py-2">
         <NuxtPage />
@@ -88,5 +96,13 @@ a.link {
 
 a.link-dotted {
   @apply underline decoration-dotted;
+}
+
+ol > li {
+  @apply list-decimal ms-8;
+}
+
+ul > li {
+  @apply list-disc ms-8 not-last-of-type:mb-2;
 }
 </style>

@@ -1,8 +1,11 @@
+import type { GetUserProfileResponse } from '~/models/responses/account/GetUserProfileResponse';
+
 function getState() {
   return {
     initialized: false,
     initializing: false,
-    uid: undefined as string | undefined
+    username: undefined as string | undefined,
+    email: undefined as string | undefined
   };
 }
 
@@ -17,6 +20,18 @@ const useAuthStore = defineStore('auth', {
       this.initializing = true;
 
       try {
+        const response = await useFetch<GetUserProfileResponse>(
+          '/api/v1/account/profile'
+        );
+
+        this.username = response.data.value!.username;
+        this.email = response.data.value!.email;
+      } catch (error: any) {
+        if (error?.statusCode === 401) {
+          // Not logged in
+
+          return;
+        }
       } finally {
         this.initialized = true;
         this.initializing = false;
@@ -24,7 +39,7 @@ const useAuthStore = defineStore('auth', {
     }
   },
   getters: {
-    isLoggedIn: (state) => !!state.uid
+    isLoggedIn: (state) => !!state.username
   }
 });
 

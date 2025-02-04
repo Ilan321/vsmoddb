@@ -13,7 +13,7 @@ store.refreshAsync();
 
 <template>
   <div class="home flex flex-col justify-start align-start">
-    <div v-if="!auth.isLoggedIn">
+    <div>
       <h1 class="text-xl mb-2">
         Welcome to the unofficial mod repository for Vintage Story!
       </h1>
@@ -54,7 +54,20 @@ store.refreshAsync();
         on Discord.
       </p>
     </div>
-    <div v-else>Your mods</div>
+    <div v-if="auth.isLoggedIn" class="mt-4">
+      <div class="flex justify-start gap-2 align-center">
+        <h2 class="text-xl mb-2">Your mods</h2>
+        <spinner v-if="store.myMods.loading.value" />
+        <error-icon
+          v-if="store.myMods.loading.error"
+          tooltip="An error occurred while loading your mods"
+        />
+      </div>
+      <mod-grid
+        v-if="store.myMods.value.length > 0"
+        :mods="store.myMods.value"
+      />
+    </div>
     <div class="flex justify-start gap-2 align-center mt-4 mb-2">
       <h2 class="text-xl">Latest 10 mods</h2>
       <spinner v-if="store.mods.loading.value" />
