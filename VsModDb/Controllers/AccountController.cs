@@ -18,6 +18,7 @@ namespace VsModDb.Controllers;
 [Route("api/v1/account")]
 public class AccountController(
     ILogger<AccountController> log,
+    SignInManager<User> signInManager,
     IAccountService accountService,
     UserManager<User> userManager,
     IOptions<AccountOptions> accountOptions
@@ -118,6 +119,9 @@ public class AccountController(
             Email = user.Email!
         };
     }
+
+    [HttpGet("logout")]
+    public Task Logout() => signInManager.SignOutAsync();
 
     private string? GetSecretLinkToken() => HttpContext
         .Request

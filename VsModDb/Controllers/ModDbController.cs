@@ -1,6 +1,8 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿using System.Net;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using VsModDb.Data.Entities;
+using VsModDb.Models.Exceptions;
 using VsModDb.Models.Tasks;
 
 namespace VsModDb.Controllers;
@@ -23,7 +25,13 @@ public abstract class ModDbController : ControllerBase
 
         if (user is null)
         {
-            throw new InvalidOperationException($"User {User.Identity?.Name} not found");
+            // Could not get user, remove cookie and return 401
+
+            var signInManager = HttpContext.RequestServices.GetRequiredService<SignInManager<User>>();
+
+            await signInManager.SignOutAsync();
+
+            throw new StatusCodeException(HttpStatusCode.Unauthorized);
         }
 
         return user;

@@ -50,6 +50,7 @@ public interface ILegacyApiClient
     Task HydrateModDetailsAsync(CancellationToken cancellationToken = default);
 
     Task<GetTagsResponse> GetTagsAsync(CancellationToken cancellationToken = default);
+    Task<int?> GetUserIdByNameAsync(string username, CancellationToken cancellationToken = default);
 }
 
 public class LegacyApiClient(
@@ -559,6 +560,16 @@ public class LegacyApiClient(
             Tags = tags!.Tags.Select(ToModTag).ToList(),
             GameVersions = gameVersions!.GameVersions.Select(ToModTag).ToList()
         };
+    }
+
+    public async Task<int?> GetUserIdByNameAsync(string username, CancellationToken cancellationToken = default)
+    {
+        var users = await GetUsersAsync(cancellationToken);
+
+        return users
+            .Where(f => f.Value == username)
+            .Select(f => f.Key as int?)
+            .FirstOrDefault();
     }
 
     public Task<Dictionary<int, LegacyModDetails>?> TryGetCachedModDetails(

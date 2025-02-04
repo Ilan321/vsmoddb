@@ -49,7 +49,8 @@ public class AccountService(
     TimeProvider timeProvider,
     IAccountLinkRepository accountLinkRepository,
     IOptions<AccountOptions> accountOptions,
-    HttpClient httpClient
+    HttpClient httpClient,
+    ILegacyApiClient moddbClient
 ) : IAccountService
 {
     public async Task<StartAccountLinkDetails> StartAccountLinkAsync(
@@ -139,13 +140,23 @@ public class AccountService(
             throw new StatusCodeException(HttpStatusCode.BadRequest, ErrorCodes.Account.LINK_VERIFICATION_FAILED);
         }
 
+        var moddbId = await moddbClient.GetUserIdByNameAsync(request.Username, cancellationToken);
+
+        if (!moddbId.HasValue)
+        {
+            log.LogWarning("Could not get moddb user id for user {username}", request.Username);
+
+            throw new StatusCodeException(HttpStatusCode.BadRequest, ErrorCodes.Account.LINK_VERIFICATION_FAILED);
+        }
+
         log.LogInformation("Successfully found matching link token for user {username}, creating user", request.Username);
 
         var user = new User
         {
             UserName = request.Username,
             Email = request.Email,
-            EmailConfirmed = false
+            EmailConfirmed = false,
+            ModDbUserId = moddbId
         };
 
         var result = await userManager.CreateAsync(user);
