@@ -5,6 +5,7 @@ using VsModDb.Models.Tasks;
 
 namespace VsModDb.Controllers;
 
+[ApiController]
 public abstract class ModDbController : ControllerBase
 {
     public AsyncLazy<User> CurrentUser { get; }

@@ -9,6 +9,7 @@
   <ItemGroup>
     <PackageReference Include="Hangfire.AspNetCore" Version="1.8.17" />
     <PackageReference Include="Hangfire.InMemory" Version="1.0.0" />
+    <PackageReference Include="HtmlAgilityPack" Version="1.11.72" />
     <PackageReference Include="Ilan321.AspNetCore.Caching.Extensions" Version="1.0.0" />
     <PackageReference Include="ilandev.AspNetCore.ExceptionHandler" Version="0.1.2" />
     <PackageReference Include="ilandev.Extensions.Configuration" Version="1.0.1" />

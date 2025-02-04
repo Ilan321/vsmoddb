@@ -17,8 +17,17 @@ public static class DbExtensions
         return builder;
     }
 
-    public static PropertyBuilder<DateTime> IsUtc(this PropertyBuilder<DateTime> builder) =>
+    public static PropertyBuilder<DateTime> IsUtc(this PropertyBuilder<DateTime> builder, bool defaultValue = false)
+    {
         builder.HasConversion(f => f, f => DateTime.SpecifyKind(f, DateTimeKind.Utc));
+
+        if (defaultValue)
+        {
+            builder.HasDefaultValueSql("GETUTCDATE()");
+        }
+
+        return builder;
+    }
 
     public static PropertyBuilder<DateTime?> IsUtc(this PropertyBuilder<DateTime?> builder) =>
         builder.HasConversion(f => f, f => f.HasValue ? DateTime.SpecifyKind(f.Value, DateTimeKind.Utc) : null);

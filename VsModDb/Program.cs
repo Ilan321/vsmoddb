@@ -13,6 +13,7 @@ using VsModDb.Data.Repositories;
 using VsModDb.Extensions;
 using VsModDb.Models.Exceptions;
 using VsModDb.Models.Options;
+using VsModDb.Services.Account;
 using VsModDb.Services.Jobs;
 using VsModDb.Services.LegacyApi;
 using VsModDb.Services.Mods;
@@ -42,14 +43,17 @@ builder.Services.ConfigureApplicationCookie(c => c.ConfigureApiDefaults());
 
 builder.Services
     .AddScoped<IModService, ModService>()
+    .AddScoped<IAccountService, AccountService>()
     .AddScoped<IStorageProvider, DiskStorageProvider>();
 
 builder.Services
+    .AddScoped<IAccountLinkRepository, AccountLinkRepository>()
     .AddScoped<IModRepository, ModRepository>();
 
 builder.Services
     .ConfigureAppOptions<DiskStorageProviderOptions>(builder.Configuration)
-    .ConfigureAppOptions<LegacyClientOptions>(builder.Configuration);
+    .ConfigureAppOptions<LegacyClientOptions>(builder.Configuration)
+    .ConfigureAppOptions<AccountOptions>(builder.Configuration);
 
 builder.Services.AddMemoryCache();
 
