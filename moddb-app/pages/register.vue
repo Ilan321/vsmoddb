@@ -1,11 +1,14 @@
 <script setup lang="ts">
 import type { StartAccountLinkResponse } from '~/models/responses/account/StartAccountLinkResponse';
+import useAuthStore from '~/store/auth';
 
 useTitle('Link your account');
 
 definePageMeta({
   middleware: ['anonymous-only']
 });
+
+const authStore = useAuthStore();
 
 const username = ref('');
 const email = ref('');
@@ -107,6 +110,10 @@ async function onStepTwoSubmit() {
       }
     });
 
+    await authStore.initAsync({
+      force: true
+    });
+
     step.value = 3;
   } catch (error: any) {
     if (error?.statusCode >= 500) {
@@ -117,7 +124,7 @@ async function onStepTwoSubmit() {
       return;
     }
 
-    if (error?.statusCode === 400) {
+    if (error?.statusCode === 400 && error.data?.errorCode) {
       const errorMap = {
         INVALID_LINK_REQUEST:
           'This validation token is invalid. Please refresh the page and try again.',
@@ -125,7 +132,9 @@ async function onStepTwoSubmit() {
           'This validation token has expired. Please refresh the page and try again.',
         LINK_VERIFICATION_FAILED:
           'Could not find a verification comment on the ModDB page. Please make sure you have posted the token correctly.'
-      };
+      } as Record<string, string>;
+
+      stepTwoErrors.value = [errorMap[error.data.errorCode]];
     }
 
     console.log({ error });
@@ -156,7 +165,7 @@ async function onStepThreeSubmit() {
       }
     });
 
-    // Show success, then redirect to the home page
+    // Show success
 
     stepThreeSuccess.value = true;
     step.value = 4;
@@ -242,7 +251,7 @@ async function onStepThreeSubmit() {
           <li>
             <p>
               Go to the
-              <a class="link-blue" :href="tokenUrl"
+              <a class="link-blue" :href="tokenUrl" target="_blank"
                 >account verification page</a
               >
               on the official ModDB.

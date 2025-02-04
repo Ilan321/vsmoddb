@@ -12,9 +12,11 @@ function getState() {
 const useAuthStore = defineStore('auth', {
   state: getState,
   actions: {
-    async initAsync() {
+    async initAsync(options?: { force?: boolean }) {
       if (this.initialized || this.initializing) {
-        return;
+        if (!options?.force) {
+          return;
+        }
       }
 
       this.initializing = true;
