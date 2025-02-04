@@ -110,7 +110,8 @@ if (builder.Configuration.GetConnectionString("redis") is { } redisConnectionStr
     builder.Services.AddStackExchangeRedisCache(c => c.Configuration = redisConnectionString);
 }
 
-builder.Services.AddScoped<RequestIdMiddleware>();
+builder.Services.AddScoped<RequestIdMiddleware>()
+    .AddScoped<UserScopeMiddleware>();
 
 var app = builder.Build();
 
@@ -123,7 +124,10 @@ if (app.Environment.IsDevelopment())
     app.UseHangfireDashboard();
 }
 
+app.UseAuthentication();
 app.UseAuthorization();
+
+app.UseMiddleware<UserScopeMiddleware>();
 
 app.UseExceptionHandlingMiddleware();
 
