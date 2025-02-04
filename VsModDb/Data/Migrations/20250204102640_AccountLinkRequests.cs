@@ -20,7 +20,8 @@ namespace VsModDb.Data.Migrations
                     TimeCreatedUtc = table.Column<DateTime>(type: "datetime2", nullable: false, defaultValueSql: "GETUTCDATE()"),
                     Username = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: false),
                     Email = table.Column<string>(type: "nvarchar(512)", maxLength: 512, nullable: false),
-                    LinkToken = table.Column<string>(type: "nvarchar(64)", maxLength: 64, nullable: false)
+                    LinkToken = table.Column<string>(type: "nvarchar(64)", maxLength: 64, nullable: false),
+                    Secret = table.Column<string>(type: "nvarchar(64)", maxLength: 64, nullable: false)
                 },
                 constraints: table =>
                 {

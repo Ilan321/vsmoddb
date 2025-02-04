@@ -12,7 +12,7 @@ using VsModDb.Data;
 namespace VsModDb.Data.Migrations
 {
     [DbContext(typeof(ModDbContext))]
-    [Migration("20250204075131_AccountLinkRequests")]
+    [Migration("20250204102640_AccountLinkRequests")]
     partial class AccountLinkRequests
     {
         /// <inheritdoc />
@@ -172,6 +172,11 @@ namespace VsModDb.Data.Migrations
                         .HasColumnType("nvarchar(512)");
 
                     b.Property<string>("LinkToken")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
+
+                    b.Property<string>("Secret")
                         .IsRequired()
                         .HasMaxLength(64)
                         .HasColumnType("nvarchar(64)");

@@ -10,6 +10,7 @@ public class AccountLinkRequest : BaseEntity
     public required string Username { get; init; }
     public required string Email { get; init; }
     public required string LinkToken { get; init; }
+    public required string Secret { get; set; }
 
     public class Configuration : IEntityTypeConfiguration<AccountLinkRequest>
     {
@@ -29,6 +30,10 @@ public class AccountLinkRequest : BaseEntity
                 .IsRequired();
 
             builder.Property(f => f.LinkToken)
+                .HasMaxLength(64)
+                .IsRequired();
+
+            builder.Property(f => f.Secret)
                 .HasMaxLength(64)
                 .IsRequired();
 

@@ -9,6 +9,7 @@ public interface IAccountLinkRepository
         string username,
         string email,
         string token,
+        string secret,
         CancellationToken cancellationToken = default
     );
 
@@ -25,6 +26,7 @@ public class AccountLinkRepository(
         string username,
         string email,
         string token,
+        string secret,
         CancellationToken cancellationToken = default
     )
     {
@@ -33,7 +35,8 @@ public class AccountLinkRepository(
             {
                 Username = username,
                 Email = email,
-                LinkToken = token
+                LinkToken = token,
+                Secret = secret
             }
         );
 

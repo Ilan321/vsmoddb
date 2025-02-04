@@ -166,28 +166,40 @@ public class LegacyApiClient(
 
         var mods = await GetModsAsync(cancellationToken);
 
-        return await response!.Comments!
-            .Take(20)
-            .SelectAsync(
-                async comment =>
-                {
-                    var userName = await GetUserAsync(comment.UserId, cancellationToken);
-                    var modDetails = mods.FirstOrDefault(f => f.AssetId == comment.AssetId);
+        var comments = new List<LatestModCommentDto>();
 
-                    return new LatestModCommentDto
-                    {
-                        Mod = ToModDisplayDto(modDetails!),
-                        Comment = new()
-                        {
-                            Author = userName!,
-                            Comment = comment.Text,
-                            ContentType = ModCommentContentType.Html,
-                            TimeCreatedUtc = comment.Created,
-                            TimeUpdatedUtc = comment.LastModified
-                        }
-                    };
+        foreach (var comment in response!.Comments!)
+        {
+            if (comments.Count >= 20)
+            {
+                break;
+            }
+
+            var userName = await GetUserAsync(comment.UserId, cancellationToken);
+            var modDetails = mods.FirstOrDefault(f => f.AssetId == comment.AssetId);
+
+            if (userName is null || modDetails is null)
+            {
+                continue;
+            }
+
+            var modComment = new LatestModCommentDto
+            {
+                Mod = ToModDisplayDto(modDetails),
+                Comment = new()
+                {
+                    Author = userName!,
+                    Comment = comment.Text,
+                    ContentType = ModCommentContentType.Html,
+                    TimeCreatedUtc = comment.Created,
+                    TimeUpdatedUtc = comment.LastModified
                 }
-            ).ToListAsync(cancellationToken);
+            };
+
+            comments.Add(modComment);
+        }
+
+        return comments;
     }
 
     public async Task<GetModsResponse> GetModsAsync(

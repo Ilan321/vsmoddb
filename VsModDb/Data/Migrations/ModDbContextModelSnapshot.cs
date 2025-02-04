@@ -173,6 +173,11 @@ namespace VsModDb.Data.Migrations
                         .HasMaxLength(64)
                         .HasColumnType("nvarchar(64)");
 
+                    b.Property<string>("Secret")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
+
                     b.Property<DateTime>("TimeCreatedUtc")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("datetime2")

@@ -10,4 +10,9 @@ public class StartAccountLinkResponse
     /// The user is expected to put this token on a comment on the "linking" mod post (from configuration).
     /// </summary>
     public required string LinkToken { get; init; }
+
+    /// <summary>
+    /// The URL to the mod post where the verification token should be posted.
+    /// </summary>
+    public required string Url { get; init; }
 }

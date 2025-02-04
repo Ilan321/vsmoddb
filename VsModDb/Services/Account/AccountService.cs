@@ -1,12 +1,16 @@
-﻿using HtmlAgilityPack;
+﻿using System.Net;
+using HtmlAgilityPack;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Options;
+using VsModDb.Constants;
 using VsModDb.Data.Entities;
 using VsModDb.Data.Entities.Account;
 using VsModDb.Data.Repositories;
 using VsModDb.Extensions;
 using VsModDb.Models.Account;
+using VsModDb.Models.Exceptions;
 using VsModDb.Models.Options;
+using VsModDb.Models.Responses.Account;
 using VsModDb.Services.LegacyApi;
 
 namespace VsModDb.Services.Account;
@@ -17,13 +21,25 @@ public interface IAccountService
     /// Creates an <see cref="AccountLinkRequest"/> for the given user.
     /// </summary>
     /// <returns>The user's link token.</returns>
-    Task<string> StartAccountLinkAsync(
+    Task<StartAccountLinkDetails> StartAccountLinkAsync(
         string username,
         string email,
         CancellationToken cancellationToken = default
     );
 
-    Task<bool> VerifyAccountLinkAsync(string token, CancellationToken cancellationToken);
+    Task VerifyAccountLinkAsync(
+        string token,
+        string? secret,
+        CancellationToken cancellationToken
+    );
+
+    Task SetAccountPasswordAsync(
+        User user,
+        string password,
+        string token,
+        string? secret,
+        CancellationToken cancellationToken = default
+    );
 }
 
 public class AccountService(
@@ -36,13 +52,14 @@ public class AccountService(
     HttpClient httpClient
 ) : IAccountService
 {
-    public async Task<string> StartAccountLinkAsync(
+    public async Task<StartAccountLinkDetails> StartAccountLinkAsync(
         string username,
         string email,
         CancellationToken cancellationToken = default
     )
     {
         var token = Guid.NewGuid().ToString("N");
+        var secret = Guid.NewGuid().ToString("N");
 
         log.LogDebug(
             "Created account link token for user {username}: {token}",
@@ -54,13 +71,22 @@ public class AccountService(
             username,
             email,
             token,
+            secret,
             cancellationToken
         );
 
-        return token;
+        return new()
+        {
+            Token = token,
+            Secret = secret
+        };
     }
 
-    public async Task<bool> VerifyAccountLinkAsync(string token, CancellationToken cancellationToken)
+    public async Task VerifyAccountLinkAsync(
+        string token,
+        string? secret,
+        CancellationToken cancellationToken
+    )
     {
         log.LogDebug("Verifying account link token {token}", token);
 
@@ -70,18 +96,21 @@ public class AccountService(
         {
             log.LogWarning("Could not find link request with token {token}", token);
 
-            return false;
+            throw new StatusCodeException(HttpStatusCode.BadRequest, ErrorCodes.Account.INVALID_LINK_REQUEST);
         }
 
-        var tokenTime = timeProvider.GetUtcNow() - request.TimeCreatedUtc;
-
-        if (tokenTime.TotalMinutes >= accountOptions.Value.LinkTokenExpirationMinutes)
+        if (request.Secret != secret)
         {
-            log.LogWarning("Link request with token {token} has expired, deleting from database", token);
+            log.LogWarning("Request secret does not match given secret");
 
-            await accountLinkRepository.DeleteLinkRequestAsync(token, CancellationToken.None);
+            throw new StatusCodeException(HttpStatusCode.BadRequest, ErrorCodes.Account.INVALID_LINK_REQUEST);
+        }
+        
+        if (!IsLinkRequestActive(request))
+        {
+            log.LogWarning("Link request with token {token} has expired", token);
 
-            return false;
+            throw new StatusCodeException(HttpStatusCode.BadRequest, ErrorCodes.Account.LINK_REQUEST_EXPIRED);
         }
 
         log.LogDebug(
@@ -100,14 +129,14 @@ public class AccountService(
         {
             log.LogWarning("Could not find comment with matching token {token}", request.LinkToken);
 
-            return false;
+            throw new StatusCodeException(HttpStatusCode.BadRequest, ErrorCodes.Account.LINK_VERIFICATION_FAILED);
         }
 
         if (!string.Equals(match.Author, request.Username))
         {
             log.LogWarning("Found matching link token, but author ({author}) does not match request username ({username})", match.Author, request.Username);
 
-            return false;
+            throw new StatusCodeException(HttpStatusCode.BadRequest, ErrorCodes.Account.LINK_VERIFICATION_FAILED);
         }
 
         log.LogInformation("Successfully found matching link token for user {username}, creating user", request.Username);
@@ -128,13 +157,67 @@ public class AccountService(
             throw new InvalidOperationException($"User creation returned failure: {result}");
         }
 
-        log.LogInformation("User creation succeeded, signing user in and deleting link token request");
+        log.LogInformation("User creation succeeded, signing user in");
 
         await signInManager.SignInAsync(user, isPersistent: true);
+    }
 
-        await accountLinkRepository.DeleteLinkRequestAsync(token, CancellationToken.None);
+    public async Task SetAccountPasswordAsync(
+        User user,
+        string password,
+        string token,
+        string? secret,
+        CancellationToken cancellationToken = default
+    )
+    {
+        log.LogDebug("Checking if token {token} is still active", token);
 
-        return true;
+        var request = await accountLinkRepository.GetLinkRequestAsync(token, cancellationToken);
+
+        if (request is null)
+        {
+            log.LogWarning("Could not find link request for token {token}", token);
+
+            throw new StatusCodeException(HttpStatusCode.BadRequest, ErrorCodes.Account.INVALID_LINK_REQUEST);
+        }
+
+        if (request.Secret != secret)
+        {
+            log.LogWarning("Request secret do not match saved request details");
+
+            throw new StatusCodeException(HttpStatusCode.BadRequest, ErrorCodes.Account.INVALID_LINK_REQUEST);
+        }
+
+        if (!IsLinkRequestActive(request))
+        {
+            log.LogWarning("Link request {token} is inactive, deleting from db", token);
+
+            await accountLinkRepository.DeleteLinkRequestAsync(token, CancellationToken.None);
+
+            throw new StatusCodeException(HttpStatusCode.BadRequest, ErrorCodes.Account.LINK_REQUEST_EXPIRED);
+        }
+
+        log.LogDebug("Link request {token} is still active, setting password for user {username}", token, user.UserName);
+
+        var result = await userManager.AddPasswordAsync(user, password);
+
+        if (!result.Succeeded)
+        {
+            log.LogError("Failed to set password for user {username}: {result}", user.UserName, result);
+
+            throw new StatusCodeException(HttpStatusCode.BadRequest, ErrorCodes.Account.PASSWORD_BAD);
+        }
+
+        log.LogInformation("Reset password successfully for user {username}, deleting link request", user.UserName);
+
+        await accountLinkRepository.DeleteLinkRequestAsync(token, cancellationToken);
+    }
+
+    private bool IsLinkRequestActive(AccountLinkRequest request)
+    {
+        var timeSinceCreation = timeProvider.GetUtcNow() - request.TimeCreatedUtc;
+
+        return timeSinceCreation.TotalMinutes < accountOptions.Value.LinkTokenExpirationMinutes;
     }
 
     private async Task<List<AccountLinkVerificationComment>> GetAccountLinkPostCommentsAsync(
