@@ -16,6 +16,7 @@ using VsModDb.Models.Options;
 using VsModDb.Services.Account;
 using VsModDb.Services.Jobs;
 using VsModDb.Services.LegacyApi;
+using VsModDb.Services.Middleware;
 using VsModDb.Services.Mods;
 using VsModDb.Services.Storage.Providers;
 
@@ -109,9 +110,13 @@ if (builder.Configuration.GetConnectionString("redis") is { } redisConnectionStr
     builder.Services.AddStackExchangeRedisCache(c => c.Configuration = redisConnectionString);
 }
 
+builder.Services.AddScoped<RequestIdMiddleware>();
+
 var app = builder.Build();
 
 var jobManager = app.Services.GetRequiredService<IRecurringJobManager>();
+
+app.UseMiddleware<RequestIdMiddleware>();
 
 if (app.Environment.IsDevelopment())
 {
