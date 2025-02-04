@@ -16,14 +16,13 @@ using VsModDb.Services.Mods;
 namespace VsModDb.Controllers;
 
 [Authorize]
-[ApiController]
 [Route("api/v1/mods")]
 public class ModsController(
     IOptions<LegacyClientOptions> legacyOptions,
     ILegacyApiClient legacyApiClient,
     ModDbContext context, 
     IModService modService
-) : ControllerBase
+) : ModDbController
 {
     [AllowAnonymous]
     [HttpGet]
@@ -155,6 +154,19 @@ public class ModsController(
         if (legacyOptions.Value.Enabled)
         {
             return await legacyApiClient.GetTagsAsync(cancellationToken);
+        }
+
+        throw new NotImplementedException();
+    }
+
+    [HttpGet("mine")]
+    public async Task<List<ModDisplayDto>> GetMyMods(CancellationToken cancellationToken)
+    {
+        var user = await CurrentUser;
+
+        if (legacyOptions.Value.Enabled)
+        {
+            return await legacyApiClient.GetModsByAuthorAsync(user.UserName!, cancellationToken);
         }
 
         throw new NotImplementedException();
