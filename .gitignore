@@ -404,3 +404,4 @@ FodyWeavers.xsd
 appsettings.Development.json
 launchSettings.json
 /VsModDb/appsettings.yeti.json
+/VsModDb/appsettings.yeti.beta.json
